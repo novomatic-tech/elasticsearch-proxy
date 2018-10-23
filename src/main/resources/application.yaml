@@ -1,0 +1,16 @@
+server:
+  port: 8181
+zuul:
+  host:
+    connect-timeout-millis: 2000
+    socket-timeout-millis: 4000
+  routes:
+    es:
+      path: /**
+      url: http://localhost:9200/
+  ignore-security-headers: false
+  sensitive-headers: Cookie, Set-Cookie
+  ignore-local-service: false
+  set-content-length: true
+  ignored-headers:
+
