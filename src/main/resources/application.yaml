@@ -13,4 +13,13 @@ zuul:
   ignore-local-service: false
   set-content-length: true
   ignored-headers:
+elasticsearch:
+  proxy:
+    security:
+      allow:
+      - resources:
+          indices: [".kibana"]
+          query: "type:dashboard OR type:index-pattern OR type:config OR type:visualization"
+        actions: ["read"]
+
 

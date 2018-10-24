@@ -10,11 +10,10 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-@ConfigurationProperties("elasticsearch.proxy.authz")
+@ConfigurationProperties(prefix = "elasticsearch.proxy.security")
 public class AuthorizationProperties {
     /**
      * A collection of authorization rules allowing access to defined Elasticsearch resources.
      */
-    @NestedConfigurationProperty
     private List<AuthorizationRule> allow = Collections.emptyList();
 }

@@ -139,7 +139,7 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
 
     private static Set<String> parseIdentifiers(String urlPart) {
         return Stream.of(urlPart.split(","))
-                .filter(index -> !index.startsWith("_"))
+                .filter(index -> !index.startsWith("_") && !isWildcardMatchingAll(index))
                 .collect(Collectors.toSet());
     }
 
@@ -173,6 +173,6 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
     }
 
     private static boolean isWildcardMatchingAll(String urlPath) {
-        return urlPath.equals("_all");
+        return urlPath.equals("_all") || urlPath.equals("*");
     }
 }

@@ -20,21 +20,15 @@ public final class ElasticsearchQuery {
     private final JsonNode rootNode;
     private final JsonNode wrapperNode;
 
-    private ElasticsearchQuery(JsonNode rootNode) {
-        JsonNode queryNode = rootNode.path("query");
-        if (queryNode.isMissingNode()) {
-            this.rootNode = rootNode;
-            wrapperNode = OBJECT_MAPPER.createObjectNode();
-            ((ObjectNode) this.wrapperNode).set("query", rootNode);
-        } else {
-            this.rootNode = queryNode;
-            wrapperNode = rootNode;
-        }
+    private ElasticsearchQuery(JsonNode wrapperNode) {
+        this.wrapperNode = wrapperNode;
+        JsonNode queryNode = wrapperNode.path("query");
+        this.rootNode = queryNode.isMissingNode() ? null : queryNode;
     }
 
     private ElasticsearchQuery() {
-        this.rootNode = null;
         this.wrapperNode = OBJECT_MAPPER.createObjectNode();
+        this.rootNode = null;
     }
 
     public static ElasticsearchQuery empty() {
@@ -50,11 +44,13 @@ public final class ElasticsearchQuery {
         if (queryString == null || queryString.equals("")) {
             return ElasticsearchQuery.empty();
         }
+        ObjectNode wrapperNode = OBJECT_MAPPER.createObjectNode();
         ObjectNode rootNode = OBJECT_MAPPER.createObjectNode();
         ObjectNode query = OBJECT_MAPPER.createObjectNode();
         query.set("query", query.textNode(queryString));
         rootNode.set("query_string", query);
-        return new ElasticsearchQuery(rootNode);
+        wrapperNode.set("query", rootNode);
+        return new ElasticsearchQuery(wrapperNode);
     }
 
     public boolean isEmpty() {
