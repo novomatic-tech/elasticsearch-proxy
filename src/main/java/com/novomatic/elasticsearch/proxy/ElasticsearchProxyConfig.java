@@ -41,8 +41,8 @@ public class ElasticsearchProxyConfig {
     }
 
     @Bean
-    public AuthorizationService authorizationService(AuthorizationProperties authorizationProperties) {
-        return new AuthorizationServiceImpl(authorizationProperties);
+    public AuthorizationService authorizationService(AuthorizationProperties authorizationProperties, QueryScriptEvaluator queryScriptEvaluator) {
+        return new AuthorizationServiceImpl(authorizationProperties, queryScriptEvaluator);
     }
 
     @Bean
@@ -90,5 +90,10 @@ public class ElasticsearchProxyConfig {
     @Bean
     public WrapErrorFilter wrapErrorFilter() {
         return new WrapErrorFilter();
+    }
+
+    @Bean
+    public QueryScriptEvaluator queryScriptEvaluator() {
+        return new GroovyQueryScriptEvaluator();
     }
 }

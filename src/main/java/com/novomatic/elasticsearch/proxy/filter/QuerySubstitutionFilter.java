@@ -1,9 +1,12 @@
 package com.novomatic.elasticsearch.proxy.filter;
 
+import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
+import com.netflix.zuul.exception.ZuulException;
 import com.novomatic.elasticsearch.proxy.AuthorizationResult;
 import com.novomatic.elasticsearch.proxy.ElasticsearchQuery;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
+import com.novomatic.elasticsearch.proxy.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.ReflectionUtils;
@@ -29,7 +32,7 @@ public class QuerySubstitutionFilter extends ElasticsearchApiFilter {
     }
 
     @Override
-    public Object run() {
+    public Object run() throws ZuulException {
         ElasticsearchRequest request = getElasticsearchRequest();
         ElasticsearchQuery incomingQuery = extractElasticsearchQuery();
         ElasticsearchQuery authQuery = getAuthorizationQuery(incomingQuery);
@@ -38,6 +41,13 @@ public class QuerySubstitutionFilter extends ElasticsearchApiFilter {
 
         String newBody = modifiedQuery.asOuterJson();
         log.debug("Modified body for the {} {} request:\n {}", request.getMethod(), request.getRequestURI(), newBody);
+
+        if (request.usesMethod(HttpMethod.GET)) {
+            throw new ZuulException("Unsupported", 501, "GET method with _search endpoint is currently not supported" +
+                    " for document-level security. Please use POST method instead.");
+            // TODO: change GET to POST when GET is requested.
+        }
+
         request.setBody(newBody);
         setAuthorizationRan(true);
         return null;

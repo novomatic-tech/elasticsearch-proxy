@@ -26,6 +26,7 @@
 		<lombok.version>1.18.2</lombok.version>
         <keycloak.version>4.5.0.Final</keycloak.version>
 		<lucene.version>7.5.0</lucene.version>
+		<groovy.version>2.4.8</groovy.version>
 	</properties>
 
 	<dependencies>
@@ -72,6 +73,11 @@
             <artifactId>lucene-analyzers-common</artifactId>
             <version>${lucene.version}</version>
         </dependency>
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>${groovy.version}</version>
+		</dependency>
     </dependencies>
 
 	<dependencyManagement>

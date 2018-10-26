@@ -27,6 +27,7 @@ elasticsearch:
         resources:
           indices: .kibana
           query: "type:index-pattern OR type:config"
+
       # Allow users with 'view-dashboards' client role for the 'kibana' client
       # to read documents
       # from '.kibana' index with property 'type' set to 'dashboard'
@@ -49,3 +50,5 @@ elasticsearch:
       - actions: read
         resources:
           indices: logstash-*
+          queryScript: >
+            [ createdBy: principal.token.preferredUsername ]

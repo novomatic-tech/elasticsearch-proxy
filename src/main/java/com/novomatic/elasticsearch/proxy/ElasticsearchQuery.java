@@ -175,6 +175,9 @@ public final class ElasticsearchQuery {
      */
     public boolean isIndexAggregation() {
         JsonNode aggregations = wrapperNode.path("aggs");
+        if (aggregations.isMissingNode()) {
+            return false;
+        }
         ImmutableList<Map.Entry<String, JsonNode>> properties = ImmutableList.copyOf(aggregations.fields());
         for (Map.Entry<String, JsonNode> property : properties) {
             JsonNode propertyNode = property.getValue();

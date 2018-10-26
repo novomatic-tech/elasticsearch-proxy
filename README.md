@@ -42,7 +42,8 @@ elasticsearch:
        - actions: read
          resources:
            indices: .kibana
-           query: "type:index-pattern OR type:config"
+           query: "type:index-pattern OR type:config" # This is a lucene query
+          
        # Allow users with 'view-dashboards' client role for the 'kibana' client
        # to read documents
        # from '.kibana' index with property 'type' set to 'dashboard'
@@ -53,17 +54,40 @@ elasticsearch:
            indices: .kibana
            query: "type:dashboard"
  
-       # Allow users with 'manage-dashboards' client role for the 'elasticsearch' client
+       # Allow users with 'manage-dashboards' client role for the 'kibana' client
        # to create, update and delete documents
-       # from '.kibana' index with property 'type' set to 'dashboard'
+       # from '.kibana' index 
+       # but only when a document has a 'createdBy' field set to the username
        - principal:
            roles: kibana.manage-dashboards
          actions: write
          resources:
            indices: .kibana
-           query: "type:dashboard"      
+           queryScript: > 
+             [ createdBy: principal.token.preferredUsername ] 
 ```
 
+Document-level security is achieved by either setting the:
+
+- `resources.query` - a lucene query string limiting the documents
+- `resources.queryScript` - a groovy script returning a lucene query limiting the documents
+  
+  Each script has the following variables predefined: 
+  
+  - `request` - an object representing current request (see the [ElasticsearchRequest](src/main/java/com/novomatic/elasticsearch/proxy/ElasticsearchRequest.java) class for details)
+  - `principal` - an object representing current user (see the [Principal](src/main/java/com/novomatic/elasticsearch/proxy/Principal.java) class for details).
+     It includes a `token` property which represents user's access token used in the request
+     (see [AccessToken class](https://www.keycloak.org/docs-api/3.4/javadocs/org/keycloak/representations/AccessToken.html) for available token properties)
+  - `matchedRules` - a list of rules matching current request context (filtered from all `allow` rules)
+  - `matchedIndices` - a set of indices accessible for the user in current request context (determined from all `allow` rules)
+  
+  Based on these information the query script should return either:
+  
+  - a map of terms to be matched (terms will be joined with AND logic and a corresponding lucene query will be built)
+  - a lucene query string
+
+When neither `query` nor `queryScript` is set, the request will be processed for all documents from `resources.indices`.
+Document-level security works for both read and write operations.
 
 ## Running
 
