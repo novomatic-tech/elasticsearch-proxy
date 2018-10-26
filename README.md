@@ -80,7 +80,7 @@ elasticsearch:
    POST http://localhost:8080/auth/realms/example/protocol/openid-connect/token
    Content-Type: application/x-www-form-urlencoded
    
-   username=jdoe&password=jdoe&grant_type=password&client_id=elasticsearch
+   username=jdoe&password=jdoe&grant_type=password&client_id=kibana&client_secret=y8gSCns8hPTkQr6Zqwu2hPw6ScQDZNZz
    ```
 
    You can visit [jwt.io](http://jwt.io/) and paste received access token there to 
