@@ -1,8 +1,10 @@
 package com.novomatic.elasticsearch.proxy.filter;
 
 import com.netflix.zuul.context.RequestContext;
-import com.novomatic.elasticsearch.proxy.Principal;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
+import com.novomatic.elasticsearch.proxy.Principal;
+import com.novomatic.elasticsearch.proxy.UnauthorizedException;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.adapters.AdapterDeploymentContext;
 import org.keycloak.adapters.BearerTokenRequestAuthenticator;
 import org.keycloak.adapters.KeycloakDeployment;
@@ -23,6 +25,7 @@ import java.util.List;
 
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.REQUEST_ENTITY_KEY;
 
+@Slf4j
 public class AuthenticationFilter extends ElasticsearchApiFilter {
 
     private final AdapterDeploymentContext adapterDeploymentContext;
@@ -39,6 +42,7 @@ public class AuthenticationFilter extends ElasticsearchApiFilter {
     @Override
     public Object run() {
         RequestContext currentContext = RequestContext.getCurrentContext();
+        HttpServletRequest request = currentContext.getRequest();
         logRequest(currentContext);
         SimpleHttpFacade httpFacade = new SimpleHttpFacade(currentContext.getRequest(), currentContext.getResponse());
         KeycloakDeployment keycloakDeployment = adapterDeploymentContext.resolveDeployment(httpFacade);
@@ -52,14 +56,18 @@ public class AuthenticationFilter extends ElasticsearchApiFilter {
                 break;
             case NOT_ATTEMPTED:
                 if (usesOtherAuthorization(httpFacade)) {
+                    if (shouldLog(currentContext)) {
+                        log.debug("The {} {} request uses authorization other than bearer token. Request will be passed straight to upstream Elasticsearch", request.getMethod(), request.getRequestURI());
+                    }
                     setPassThrough(true);
                 } else {
+                    log.info("The authentication for the {} {} was not attempted.", request.getMethod(), request.getRequestURI(), authenticator.getChallenge());
                     RequestContextExtensions.respondWith(currentContext, HttpStatus.UNAUTHORIZED);
                 }
                 break;
             default:
-                RequestContextExtensions.respondWith(currentContext, HttpStatus.FORBIDDEN);
-                break;
+                log.info("Authorization failed. Invalid bearer token for the {} {} request.", request.getMethod(), request.getRequestURI(), authenticator.getChallenge());
+                throw new UnauthorizedException("The user is unauthorized to perform this operation. Invalid bearer token.");
         }
         return null;
     }
@@ -69,12 +77,19 @@ public class AuthenticationFilter extends ElasticsearchApiFilter {
         return authorization != null && authorization.size() > 0;
     }
 
-    private void logRequest(RequestContext context) {
+    private boolean shouldLog(RequestContext context) {
         String requestUri = context.getRequest().getRequestURI();
-        if (requestUri.startsWith("/_nodes") || requestUri.startsWith("/.kibana/_mapping") || requestUri.equals("/")) {
+        return !requestUri.startsWith("/_nodes") && !requestUri.startsWith("/.kibana/_mapping") && !requestUri.equals("/");
+    }
+
+    private void logRequest(RequestContext context) {
+        if (!log.isTraceEnabled()) {
             return;
         }
-        System.out.println(getRequestContent(context));
+        if (!shouldLog(context)) {
+            return;
+        }
+        log.trace("A request has been received:\n" + getRequestContent(context));
     }
 
     private String getRequestContent(RequestContext context) {

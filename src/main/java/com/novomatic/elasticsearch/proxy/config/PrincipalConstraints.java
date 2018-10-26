@@ -9,6 +9,5 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 public class PrincipalConstraints {
-    public static final PrincipalConstraints ANY = new PrincipalConstraints();
     private Set<String> roles = Collections.emptySet();
 }

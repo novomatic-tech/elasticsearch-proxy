@@ -6,7 +6,10 @@ import com.netflix.zuul.context.RequestContext;
 import com.novomatic.elasticsearch.proxy.AuthorizationResult;
 import com.novomatic.elasticsearch.proxy.DocumentEvaluator;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
+import com.novomatic.elasticsearch.proxy.UnauthorizedException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ReflectionUtils;
 
@@ -18,14 +21,15 @@ import static com.novomatic.elasticsearch.proxy.filter.RequestContextExtensions.
 import static com.novomatic.elasticsearch.proxy.filter.RequestContextExtensions.respondWith;
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.ROUTE_TYPE;
 
-public class SingleGetFilter extends ElasticsearchApiFilter {
+@Slf4j
+public class GetDocumentFilter extends ElasticsearchApiFilter {
 
     private final ObjectMapper objectMapper;
     private final DocumentEvaluator documentEvaluator;
 
-    public SingleGetFilter(DocumentEvaluator documentEvaluator) {
+    public GetDocumentFilter(ObjectMapper objectMapper, DocumentEvaluator documentEvaluator) {
+        this.objectMapper = objectMapper;
         this.documentEvaluator = documentEvaluator;
-        this.objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -44,10 +48,11 @@ public class SingleGetFilter extends ElasticsearchApiFilter {
             return false;
         }
         ElasticsearchRequest request = getElasticsearchRequest();
-        return request.getMethod().equalsIgnoreCase("GET") &&
+        return request.usesMethod(HttpMethod.GET) &&
                 request.hasIndices() &&
                 request.hasTypes() &&
-                request.hasResourceId();
+                request.hasResourceId() &&
+                responseIs2xxSuccessfull();
     }
 
     @Override
@@ -60,15 +65,19 @@ public class SingleGetFilter extends ElasticsearchApiFilter {
             JsonNode sourceNode = jsonNode.path(SOURCE_FIELD);
             if (sourceNode.isMissingNode()) {
                 // TODO: decide what to do when document does not exist.
+                setAuthorizationRan(true);
                 return null;
             }
-            if (!documentEvaluator.matches(sourceNode, authResult.getLuceneQuery().orElse(null))) {
-                respondWith(currentContext, HttpStatus.FORBIDDEN);
+            String luceneQuery = authResult.getLuceneQuery();
+            if (!documentEvaluator.matches(sourceNode, luceneQuery)) {
+                log.info("Authorization failed. Document {} does not match query: {}", jsonNode.path("_id"), luceneQuery);
+                throw new UnauthorizedException("The user is unauthorized to access this document");
             }
         } catch (IOException | ParseException e) {
             ReflectionUtils.rethrowRuntimeException(e);
         }
 
+        setAuthorizationRan(true);
         return null;
     }
 

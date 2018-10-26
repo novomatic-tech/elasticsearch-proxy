@@ -11,17 +11,18 @@ import static org.junit.Assert.assertTrue;
 public class DocumentEvaluatorImplTest {
 
     private JsonNode document;
+    private ObjectMapper objectMapper;
 
     @Before
     public void setUp() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper = new ObjectMapper();
         document = objectMapper.readTree("{ \"id\": \"1234\", \"user\": { \"firstName\": \"John\", \"lastName\": \"Doe\" } }");
     }
 
     @Test
     public void shouldMatchNestedField() throws Exception {
         // given
-        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl();
+        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl(objectMapper);
 
         // when
         boolean matches = documentEvaluator.matches(document, "user.firstName:John");
@@ -33,7 +34,7 @@ public class DocumentEvaluatorImplTest {
     @Test
     public void shouldBeCaseInsensitive() throws Exception {
         // given
-        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl();
+        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl(objectMapper);
 
         // when
         boolean matches = documentEvaluator.matches(document, "user.firstName:john");
@@ -45,7 +46,7 @@ public class DocumentEvaluatorImplTest {
     @Test
     public void shouldMatchTopLevelField() throws Exception {
         // given
-        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl();
+        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl(objectMapper);
 
         // when
         boolean matches = documentEvaluator.matches(document, "id:\"1234\"");
@@ -57,7 +58,7 @@ public class DocumentEvaluatorImplTest {
     @Test
     public void shouldMatchComplexQuery() throws Exception {
         // given
-        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl();
+        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl(objectMapper);
 
         // when
         boolean matches = documentEvaluator.matches(document, "(id:123* AND user.lastName:Do*)");
@@ -69,7 +70,7 @@ public class DocumentEvaluatorImplTest {
     @Test
     public void shouldNotMatchComplexQuery() throws Exception {
         // given
-        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl();
+        DocumentEvaluator documentEvaluator = new DocumentEvaluatorImpl(objectMapper);
 
         // when
         boolean matches = documentEvaluator.matches(document, "id:44*4 OR user.lastName:Smi*");

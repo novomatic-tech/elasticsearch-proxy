@@ -4,12 +4,15 @@ import com.netflix.zuul.context.RequestContext;
 import com.novomatic.elasticsearch.proxy.AuthorizationResult;
 import com.novomatic.elasticsearch.proxy.ElasticsearchQuery;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod;
 import org.springframework.util.ReflectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Optional;
 
+@Slf4j
 public class QuerySubstitutionFilter extends ElasticsearchApiFilter {
 
     @Override
@@ -18,20 +21,34 @@ public class QuerySubstitutionFilter extends ElasticsearchApiFilter {
             return false;
         }
         ElasticsearchRequest request = getElasticsearchRequest();
-        return request.isSearch() || request.isCount() || request.isDeleteByQuery() || request.isUpdateByQuery();
+        return request.usesOneOfMethods(HttpMethod.GET, HttpMethod.POST) &&
+                (request.isSearchOperation() ||
+                request.isCountOperation() ||
+                request.isDeleteByQueryOperation() ||
+                request.isUpdateByQueryOperation());
     }
 
     @Override
     public Object run() {
-        AuthorizationResult authorizationResult = getPreAuthorizationResult();
         ElasticsearchRequest request = getElasticsearchRequest();
         ElasticsearchQuery incomingQuery = extractElasticsearchQuery();
-
-        ElasticsearchQuery modifiedQuery = incomingQuery.and(authorizationResult.getQuery());
+        ElasticsearchQuery authQuery = getAuthorizationQuery(incomingQuery);
+        ElasticsearchQuery modifiedQuery = incomingQuery.and(authQuery);
         // TODO: this may be optimized according to boolean logic: A and (A or B or C or ...) = A
 
-        request.setBody(modifiedQuery.asOuterJson());
+        String newBody = modifiedQuery.asOuterJson();
+        log.debug("Modified body for the {} {} request:\n {}", request.getMethod(), request.getRequestURI(), newBody);
+        request.setBody(newBody);
+        setAuthorizationRan(true);
         return null;
+    }
+
+    private ElasticsearchQuery getAuthorizationQuery(ElasticsearchQuery incomingQuery) {
+        AuthorizationResult authorizationResult = getPreAuthorizationResult();
+        if (incomingQuery.isIndexAggregation()) {
+            return ElasticsearchQuery.allowedIndices(authorizationResult.getAllowedIndices());
+        }
+        return authorizationResult.getQuery();
     }
 
     protected ElasticsearchQuery extractElasticsearchQuery() {

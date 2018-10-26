@@ -8,7 +8,6 @@ public class Constants {
     public static final String PASS_THROUGH = "passThrough";
     public static final String AUTHORIZATION = "authorization";
 
-
     public static final int AUTHENTICATION_FILTER_ORDER = PRE_DECORATION_FILTER_ORDER + 10;
     public static final int PRE_AUTHORIZATION_FILTER_ORDER = PRE_DECORATION_FILTER_ORDER + 20;
     public static final int AUTHORIZATION_FILTER_ORDER = PRE_DECORATION_FILTER_ORDER + 30;

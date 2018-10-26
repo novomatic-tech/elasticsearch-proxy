@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
+import com.novomatic.elasticsearch.proxy.filter.JsonNodeUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class ElasticsearchQuery {
@@ -36,8 +36,26 @@ public final class ElasticsearchQuery {
     }
 
     public static ElasticsearchQuery fromJson(String json) throws IOException {
-        JsonNode rootNode = OBJECT_MAPPER.readTree(json);
-        return new ElasticsearchQuery(rootNode);
+        if (json == null || json.equals("")) {
+            return ElasticsearchQuery.empty();
+        }
+        JsonNode wrapperNode = OBJECT_MAPPER.readTree(json);
+        return new ElasticsearchQuery(wrapperNode);
+    }
+
+    public static ElasticsearchQuery allowedIndices(Set<String> indices) {
+        if (indices.isEmpty()) {
+            return ElasticsearchQuery.empty();
+        }
+        List<String> quotedIndices = indices.stream().map(index -> "\"" + index + "\"").collect(Collectors.toList());
+        String indicesArrayString = String.join(",", quotedIndices);
+        try {
+            JsonNode wrapperNode = OBJECT_MAPPER.readTree("{\"query\":{\"terms\":{\"_index\":[" + indicesArrayString + "]}}}");
+            return new ElasticsearchQuery(wrapperNode);
+        } catch (IOException e) {
+            ReflectionUtils.rethrowRuntimeException(e);
+            return null;
+        }
     }
 
     public static ElasticsearchQuery fromLuceneQuery(String queryString) {
@@ -129,6 +147,48 @@ public final class ElasticsearchQuery {
             return Optional.empty();
         }
     }
+
+    /**
+     * Finds a nested JSON node in the query JSON.
+     * @param property The JSON property name (i.e. query.terms).
+     */
+    public JsonNode getProperty(String property) {
+        return JsonNodeUtils.findProperty(wrapperNode, property);
+    }
+
+    /**
+     * Checks whether this query aggregates indices.
+     * Is crucial NOT to concat the indices aggregation query with authorization queries such as:
+     * <pre>
+     * {
+     *   "aggs": {
+     *     "indices": {
+     *       "terms": {
+     *         "field": "_index",
+     *         "size": 200
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
+     * @return
+     */
+    public boolean isIndexAggregation() {
+        JsonNode aggregations = wrapperNode.path("aggs");
+        ImmutableList<Map.Entry<String, JsonNode>> properties = ImmutableList.copyOf(aggregations.fields());
+        for (Map.Entry<String, JsonNode> property : properties) {
+            JsonNode propertyNode = property.getValue();
+            if (Iterators.size(propertyNode.fields()) != 1) {
+                return false; // There is more than "terms" in the field
+            }
+            JsonNode termsFieldNode = JsonNodeUtils.findProperty(propertyNode, "terms.field");
+            if (termsFieldNode.isMissingNode() || !termsFieldNode.textValue().equals("_index")) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     /**
      * Generates a JSON with a "query" property at root level wrapping

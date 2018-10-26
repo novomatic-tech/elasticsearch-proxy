@@ -13,7 +13,7 @@ public class AuthorizationRule {
     /**
      * A rule defining a subset of users allowed to perform specified actions on specified resources.
      */
-    private PrincipalConstraints principal = PrincipalConstraints.ANY;
+    private PrincipalConstraints principal = new PrincipalConstraints();
     /**
      * A rule defining a subset of Elasticsearch resources allowed to be accessed.
      */
@@ -30,7 +30,9 @@ public class AuthorizationRule {
         }
         return getResources().getIndices().stream().anyMatch(indexPattern ->
                 requestIndices.stream().anyMatch(requestedIndexPattern ->
-                        requestedIndexPattern.matches(indexPatternToRegex(indexPattern))));
+                    requestedIndexPattern.matches(indexPatternToRegex(indexPattern)) ||
+                    indexPattern.matches(indexPatternToRegex(requestedIndexPattern))
+                ));
     }
 
     private static String indexPatternToRegex(String indexPattern) {

@@ -1,5 +1,6 @@
 package com.novomatic.elasticsearch.proxy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.novomatic.elasticsearch.proxy.config.AuthorizationProperties;
 import com.novomatic.elasticsearch.proxy.filter.*;
 import org.keycloak.adapters.AdapterDeploymentContext;
@@ -45,13 +46,13 @@ public class ElasticsearchProxyConfig {
     }
 
     @Bean
-    public SingleGetFilter getFilter(DocumentEvaluator documentEvaluator) {
-        return new SingleGetFilter(documentEvaluator);
+    public GetDocumentFilter getFilter(ObjectMapper objectMapper, DocumentEvaluator documentEvaluator) {
+        return new GetDocumentFilter(objectMapper, documentEvaluator);
     }
 
     @Bean
-    public DocumentEvaluator documentEvaluator() {
-        return new DocumentEvaluatorImpl();
+    public DocumentEvaluator documentEvaluator(ObjectMapper objectMapper) {
+        return new DocumentEvaluatorImpl(objectMapper);
     }
 
     @Bean
@@ -60,12 +61,34 @@ public class ElasticsearchProxyConfig {
     }
 
     @Bean
-    public MultiGetFilter multiGetFilter(DocumentEvaluator documentEvaluator) {
-        return new MultiGetFilter(documentEvaluator);
+    public MultiGetFilter multiGetFilter(ObjectMapper objectMapper, DocumentEvaluator documentEvaluator) {
+        return new MultiGetFilter(objectMapper, documentEvaluator);
     }
 
     @Bean
     public MultiSearchFilter multiSearchFilter() {
         return new MultiSearchFilter();
+    }
+
+    @Bean
+    public WriteDocumentFilter writeDocumentFilter(ObjectMapper objectMapper, DocumentEvaluator documentEvaluator) {
+        return new WriteDocumentFilter(objectMapper, documentEvaluator);
+    }
+    @Bean
+    public DeleteDocumentFilter deleteDocumentFilter(DocumentEvaluator documentEvaluator) {
+        return new DeleteDocumentFilter(documentEvaluator);
+    }
+    @Bean
+    public ReadPostAuthorizationFilter readPostAuthorizationFilter() {
+        return new ReadPostAuthorizationFilter();
+    }
+    @Bean
+    public WritePostAuthorizationFilter writePostAuthorizationFilter() {
+        return new WritePostAuthorizationFilter();
+    }
+
+    @Bean
+    public WrapErrorFilter wrapErrorFilter() {
+        return new WrapErrorFilter();
     }
 }

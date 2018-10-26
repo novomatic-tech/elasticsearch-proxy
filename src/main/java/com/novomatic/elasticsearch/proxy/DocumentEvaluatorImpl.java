@@ -3,6 +3,7 @@ package com.novomatic.elasticsearch.proxy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.novomatic.elasticsearch.proxy.filter.JsonNodeUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.memory.MemoryIndex;
@@ -20,8 +21,12 @@ import java.util.regex.Pattern;
 public class DocumentEvaluatorImpl implements DocumentEvaluator {
 
     public static final String SOURCE_FIELD = "_source";
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final Pattern fieldPattern = Pattern.compile("([^ \"()]+?):");
+    private final ObjectMapper objectMapper;
+
+    public DocumentEvaluatorImpl(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public boolean matches(JsonNode document, String luceneQuery) throws ParseException {
@@ -52,15 +57,14 @@ public class DocumentEvaluatorImpl implements DocumentEvaluator {
     private MemoryIndex buildIndex(Analyzer analyzer, JsonNode document, Collection<String> fields) {
         try {
             MemoryIndex index = new MemoryIndex();
-            String source = OBJECT_MAPPER.writeValueAsString(document);
+            String source = objectMapper.writeValueAsString(document);
             index.addField(SOURCE_FIELD, source, analyzer);
             for (String field : fields) {
-                String jsonPath = '/' + field.replace('.', '/');
-                JsonNode node = document.at(jsonPath);
+                JsonNode node = JsonNodeUtils.findProperty(document, field);
                 if (!node.isMissingNode()) {
                     String value = node.textValue();
                     if (value == null) {
-                        value = OBJECT_MAPPER.writeValueAsString(node);
+                        value = objectMapper.writeValueAsString(node);
                     }
                     index.addField(field, value, analyzer);
                 }

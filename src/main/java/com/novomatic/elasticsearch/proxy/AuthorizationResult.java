@@ -1,32 +1,69 @@
 package com.novomatic.elasticsearch.proxy;
 
-import lombok.Data;
+import lombok.Getter;
 
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@Data
 public class AuthorizationResult {
 
-    private static AuthorizationResult UNAUTHORIZED = new AuthorizationResult(null, false);
-    private final ElasticsearchQuery query;
-    private final Optional<String> luceneQuery;
-    private final boolean authorized;
+    private static AuthorizationResult UNAUTHORIZED = new AuthorizationResult();
 
-    private AuthorizationResult(String luceneQuery, boolean authorized) {
-        this.luceneQuery = Optional.ofNullable(luceneQuery);
-        this.query = ElasticsearchQuery.fromLuceneQuery(luceneQuery);
-        this.authorized = authorized;
+    @Getter
+    private final boolean authorized;
+    private final List<AuthorizationRuleOutcome> matchedRules;
+
+    private AuthorizationResult() {
+        authorized = false;
+        matchedRules = Collections.emptyList();
+    }
+
+    private AuthorizationResult(List<AuthorizationRuleOutcome> matchedRules) {
+        this.authorized = true;
+        this.matchedRules = matchedRules;
     }
 
     public static AuthorizationResult unauthorized() {
         return UNAUTHORIZED;
     }
 
-    public static AuthorizationResult authorized() {
-        return new AuthorizationResult(null, true);
+    public static AuthorizationResult authorized(List<AuthorizationRuleOutcome> matchedRules) {
+        if (matchedRules.isEmpty()) {
+            throw new IllegalArgumentException("A collection of matched rules must have at least one item.");
+        }
+        return new AuthorizationResult(matchedRules);
     }
 
-    public static AuthorizationResult authorized(String luceneQuery) {
-        return new AuthorizationResult(luceneQuery, true);
+    public Set<String> getAllowedIndices() {
+        return matchedRules.stream()
+                .flatMap(outcome -> outcome.getRule().getResources().getIndices().stream())
+                .collect(Collectors.toSet());
+    }
+
+    public ElasticsearchQuery getQuery() {
+        return ElasticsearchQuery.fromLuceneQuery(getLuceneQuery());
+    }
+
+    public String getLuceneQuery() {
+        List<String> luceneQueries = matchedRules.stream()
+                .map(AuthorizationRuleOutcome::getLuceneQuery)
+                .filter(Objects::nonNull)
+                .map(this::wrapLuceneQuery)
+                .collect(Collectors.toList());
+        if (luceneQueries.isEmpty()) {
+            return null;
+        }
+        return String.join(" OR ", luceneQueries);
+    }
+
+    private String wrapLuceneQuery(String luceneQuery) {
+        return "(" + luceneQuery + ")";
+    }
+
+    public List<AuthorizationRuleOutcome> getMatchedRules() {
+        return matchedRules;
     }
 }

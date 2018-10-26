@@ -1,0 +1,139 @@
+{
+  "id": "example",
+  "realm": "example",
+  "accessTokenLifespan": 300,
+  "enabled": true,
+  "loginWithEmailAllowed": true,
+  "roles": {
+    "client": {
+      "kibana": [
+        {
+          "name": "discover",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "name": "view-dashboards",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "name": "manage-dashboards",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "name": "view-visualizations",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "name": "manage-visualizations",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "name": "use-timelion",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "name": "use-dev-tools",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "name": "manage-kibana",
+          "composite": false,
+          "clientRole": true
+        }
+      ]
+    }
+  },
+  "requiredCredentials": [
+    "password"
+  ],
+  "users": [
+    {
+      "username": "jdoe",
+      "enabled": true,
+      "firstName": "John",
+      "lastName": "Doe",
+      "credentials": [{ "type": "password", "value": "jdoe" }],
+      "clientRoles": {
+        "kibana": ["view-dashboards", "manage-dashboards"]
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "kibana",
+      "name": "Kibana",
+      "rootUrl": "http://localhost:5601/",
+      "adminUrl": "http://localhost:5601/",
+      "baseUrl": "http://localhost:5601/",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "redirectUris": [
+        "http://localhost:5601/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5601/"
+      ],
+      "clientAuthenticatorType": "client-secret",
+      "secret": "y8gSCns8hPTkQr6Zqwu2hPw6ScQDZNZz",
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "saml.assertion.signature": "false",
+        "saml.force.post.binding": "false",
+        "saml.multivalued.roles": "false",
+        "saml.encrypt": "false",
+        "saml.server.signature": "false",
+        "saml.server.signature.keyinfo.ext": "false",
+        "exclude.session.state.from.auth.response": "false",
+        "saml_force_name_id_format": "false",
+        "saml.client.signature": "false",
+        "tls.client.certificate.bound.access.tokens": "false",
+        "saml.authnstatement": "false",
+        "display.on.consent.screen": "false",
+        "saml.onetimeuse.condition": "false"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "defaultClientScopes": [
+        "role_list",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access"
+      ]
+    }
+  ],
+  "defaultDefaultClientScopes": [
+    "role_list",
+    "profile",
+    "email"
+  ],
+  "defaultOptionalClientScopes": [
+    "offline_access",
+    "address",
+    "phone"
+  ],
+  "eventsEnabled": false,
+  "eventsListeners": [
+    "jboss-logging"
+  ]
+}

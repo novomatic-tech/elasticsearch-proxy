@@ -3,6 +3,8 @@ package com.novomatic.elasticsearch.proxy;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.http.ServletInputStreamWrapper;
 import com.novomatic.elasticsearch.proxy.config.ResourceAction;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -10,6 +12,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -39,6 +42,7 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
         parseIndices(tokens);
         parseTypes(tokens);
         parseOperation(tokens);
+        parseResourceId(tokens);
     }
 
     private void parseIndices(String[] tokens) {
@@ -60,8 +64,15 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
             String possibleAction = tokens[tokens.length - 1];
             if (possibleAction.startsWith("_")) {
                 operation = possibleAction;
-            } else {
-                resourceId = possibleAction;
+            }
+        }
+    }
+
+    private void parseResourceId(String[] tokens) {
+        if (tokens.length > 2) {
+            String possibleResourceId = tokens[2];
+            if (!possibleResourceId.startsWith("_")) {
+                resourceId = possibleResourceId;
             }
         }
     }
@@ -94,47 +105,61 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
         return operation != null;
     }
 
-    public boolean isMultiGet() {
+    public boolean hasResourceId() {
+        return resourceId != null;
+    }
+
+    public boolean isMultiGetOperation() {
         return "_mget".equals(operation);
     }
 
-    public boolean isSearch() {
+    public boolean isSearchOperation() {
         return "_search".equals(operation);
     }
 
-    public boolean isCount() {
+    public boolean isCountOperation() {
         return "_count".equals(operation);
     }
 
-    public ResourceAction deduceResourceAction() {
-        if (getMethod().equalsIgnoreCase("GET") || getMethod().equalsIgnoreCase("HEAD")) {
-            return ResourceAction.READ;
-        }
-        if (getMethod().equalsIgnoreCase("POST") &&
-                (isSearch() || isCount() || isMultiGet() || isMultiSearch())) {
-            return ResourceAction.READ;
-        }
-        return ResourceAction.WRITE;
+    public boolean isFieldCapabilitiesOperation() {
+        return "_field_caps".equals(operation);
     }
 
-    public boolean isMultiSearch() {
+    public boolean isUpdateOperation() { return "_update".equals(operation); }
+
+    public boolean isMultiSearchOperation() {
         return "_msearch".equals(operation);
     }
 
-    public boolean isDeleteByQuery() {
+    public boolean isDeleteByQueryOperation() {
         return "_delete_by_query".equals(operation);
     }
 
-    public boolean isUpdateByQuery() {
+    public boolean isUpdateByQueryOperation() {
         return "_update_by_query".equals(operation);
     }
 
-    public boolean isBulk() {
+    public boolean isBulkOperation() {
         return "_bulk".equalsIgnoreCase(operation);
     }
 
-    public boolean hasResourceId() {
-        return resourceId != null;
+    public boolean usesOneOfMethods(HttpMethod ... methods) {
+        return Arrays.stream(methods).anyMatch(this::usesMethod);
+    }
+
+    public boolean usesMethod(HttpMethod method) {
+        return getMethod().equalsIgnoreCase(method.toString());
+    }
+
+    public ResourceAction deduceResourceAction() {
+        if (usesOneOfMethods(HttpMethod.GET, HttpMethod.HEAD)) {
+            return ResourceAction.READ;
+        }
+        if (usesMethod(HttpMethod.POST) &&
+                (isSearchOperation() || isCountOperation() || isMultiGetOperation() || isMultiSearchOperation() || isFieldCapabilitiesOperation())) {
+            return ResourceAction.READ;
+        }
+        return ResourceAction.WRITE;
     }
 
     private static Set<String> parseIdentifiers(String urlPart) {

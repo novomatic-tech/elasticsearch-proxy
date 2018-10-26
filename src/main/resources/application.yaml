@@ -7,19 +7,45 @@ zuul:
   routes:
     es:
       path: /**
+      # The base url of the upstream (unprotected) Elasticsearch.
       url: http://localhost:9200/
   ignore-security-headers: false
   sensitive-headers: Cookie, Set-Cookie
   ignore-local-service: false
   set-content-length: true
   ignored-headers:
+
 elasticsearch:
   proxy:
+    # This section defines authorization rules
     security:
       allow:
-      - resources:
-          indices: [".kibana"]
-          query: "type:dashboard OR type:index-pattern OR type:config OR type:visualization"
-        actions: ["read"]
+      # Allow all authenticated users
+      # to read documents
+      # from '.kibana' index with property 'type' set to one of (index-pattern, config)
+      - actions: read
+        resources:
+          indices: .kibana
+          query: "type:index-pattern OR type:config"
+      # Allow users with 'view-dashboards' client role for the 'kibana' client
+      # to read documents
+      # from '.kibana' index with property 'type' set to 'dashboard'
+      - principal:
+          roles: kibana.view-dashboards
+        actions: read
+        resources:
+          indices: .kibana
+          query: "type:dashboard"
 
-
+      # Allow users with 'manage-dashboards' client role for the 'elasticsearch' client
+      # to create, update and delete documents
+      # from '.kibana' index with property 'type' set to 'dashboard'
+      - principal:
+          roles: kibana.manage-dashboards
+        actions: write
+        resources:
+          indices: .kibana
+          query: "type:dashboard"
+      - actions: read
+        resources:
+          indices: logstash-*

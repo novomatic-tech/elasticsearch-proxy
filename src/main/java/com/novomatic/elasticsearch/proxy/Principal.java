@@ -19,12 +19,17 @@ public final class Principal {
             return true;
         }
         return principalConstraints.getRoles().stream().anyMatch(role -> {
-            String[] tokens = role.split("\\.");
+            String[] tokens = role.split("\\."); // TODO: refactor to indexOf('.')
+            AccessToken.Access access;
+            String roleName;
             if (tokens.length >= 2) {
-                return accessToken.getResourceAccess(tokens[0]).isUserInRole(tokens[1]);
+                access = accessToken.getResourceAccess(tokens[0]);
+                roleName = tokens[1];
             } else {
-                return accessToken.getRealmAccess().isUserInRole(tokens[0]);
+                access = accessToken.getRealmAccess();
+                roleName = tokens[0];
             }
+            return access != null && access.isUserInRole(roleName);
         });
     }
 
