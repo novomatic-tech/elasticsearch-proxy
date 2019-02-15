@@ -29,8 +29,7 @@ public final class Principal {
         return resourceAccess != null && resourceAccess.isUserInRole(roleName);
     }
 
-    public boolean fulfills(AuthorizationRule authorizationRule) {
-        PrincipalConstraints principalConstraints = authorizationRule.getPrincipal();
+    public boolean fulfills(PrincipalConstraints principalConstraints) {
         if (principalConstraints.getRoles() == null || principalConstraints.getRoles().isEmpty()) {
             return true;
         }

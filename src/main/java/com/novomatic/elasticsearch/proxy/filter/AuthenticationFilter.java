@@ -4,6 +4,7 @@ import com.netflix.zuul.context.RequestContext;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
 import com.novomatic.elasticsearch.proxy.Principal;
 import com.novomatic.elasticsearch.proxy.UnauthorizedException;
+import com.novomatic.elasticsearch.proxy.config.AuthorizationProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.adapters.AdapterDeploymentContext;
 import org.keycloak.adapters.BearerTokenRequestAuthenticator;
@@ -29,9 +30,11 @@ import static org.springframework.cloud.netflix.zuul.filters.support.FilterConst
 public class AuthenticationFilter extends ElasticsearchApiFilter {
 
     private final AdapterDeploymentContext adapterDeploymentContext;
+    private final AuthorizationProperties authorizationProperties;
 
-    public AuthenticationFilter(AdapterDeploymentContext adapterDeploymentContext) {
+    public AuthenticationFilter(AdapterDeploymentContext adapterDeploymentContext, AuthorizationProperties authorizationProperties) {
         this.adapterDeploymentContext = adapterDeploymentContext;
+        this.authorizationProperties = authorizationProperties;
     }
 
     @Override
@@ -53,9 +56,14 @@ public class AuthenticationFilter extends ElasticsearchApiFilter {
                 Principal principal = new Principal(authenticator.getToken());
                 ElasticsearchRequest elasticsearchRequest = new ElasticsearchRequest(currentContext.getRequest(), principal);
                 currentContext.setRequest(elasticsearchRequest);
+                boolean principalIsAdmin = authorizationProperties.getAdmin() != null &&
+                        elasticsearchRequest.getPrincipal().fulfills(authorizationProperties.getAdmin());
+                if (principalIsAdmin) {
+                    setPassThrough(true);
+                }
                 break;
             case NOT_ATTEMPTED:
-                if (usesOtherAuthorization(httpFacade)) {
+                if (usesOtherAuthorization(httpFacade) && authorizationProperties.isPassThroughUnknownAuthorizationScheme()) {
                     if (shouldLog(currentContext)) {
                         log.debug("The {} {} request uses authorization other than bearer token. Request will be passed straight to upstream Elasticsearch", request.getMethod(), request.getRequestURI());
                     }

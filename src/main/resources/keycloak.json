@@ -1,5 +1,5 @@
 {
-  "realm": "example",
+  "realm": "kibana",
   "auth-server-url": "http://localhost:8080/auth",
   "bearer-only": true,
   "resource": "kibana"

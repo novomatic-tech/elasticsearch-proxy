@@ -31,8 +31,8 @@ public class ElasticsearchProxyConfig {
     }
 
     @Bean
-    public AuthenticationFilter authorizationFilter(AdapterDeploymentContext adapterDeploymentContext) {
-        return new AuthenticationFilter(adapterDeploymentContext);
+    public AuthenticationFilter authorizationFilter(AdapterDeploymentContext adapterDeploymentContext, AuthorizationProperties authorizationProperties) {
+        return new AuthenticationFilter(adapterDeploymentContext, authorizationProperties);
     }
 
     @Bean
@@ -85,6 +85,11 @@ public class ElasticsearchProxyConfig {
     @Bean
     public WritePostAuthorizationFilter writePostAuthorizationFilter() {
         return new WritePostAuthorizationFilter();
+    }
+
+    @Bean
+    public CheckIndexFilter checkIndexFilter() {
+        return new CheckIndexFilter();
     }
 
     @Bean

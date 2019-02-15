@@ -200,4 +200,9 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
     private static boolean isWildcardMatchingAll(String urlPath) {
         return urlPath.equals("_all") || urlPath.equals("*");
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s", getMethod(), getRequestURI());
+    }
 }

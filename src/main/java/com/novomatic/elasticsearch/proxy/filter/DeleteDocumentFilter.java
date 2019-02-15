@@ -1,23 +1,16 @@
 package com.novomatic.elasticsearch.proxy.filter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.zuul.context.RequestContext;
-import com.netflix.zuul.exception.ZuulException;
 import com.netflix.zuul.util.HTTPRequestUtils;
-import com.novomatic.elasticsearch.proxy.AuthorizationResult;
+import com.novomatic.elasticsearch.proxy.PreAuthorizationResult;
 import com.novomatic.elasticsearch.proxy.DocumentEvaluator;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
 import com.novomatic.elasticsearch.proxy.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.novomatic.elasticsearch.proxy.DocumentEvaluatorImpl.SOURCE_FIELD;
-import static com.novomatic.elasticsearch.proxy.filter.RequestContextExtensions.respondWith;
 
 @Slf4j
 public class DeleteDocumentFilter extends ElasticsearchApiFilter {
@@ -65,7 +57,7 @@ public class DeleteDocumentFilter extends ElasticsearchApiFilter {
             URL requestUrl = getTargetRequestUrl(currentContext);
             document = restTemplate.getForObject(requestUrl.toString(), JsonNode.class);
             JsonNode sourceNode = document.path(SOURCE_FIELD);
-            AuthorizationResult authResult = getPreAuthorizationResult();
+            PreAuthorizationResult authResult = getPreAuthorizationResult();
             if (!documentEvaluator.matches(sourceNode, authResult.getLuceneQuery())) {
                 log.info("Authorization failed. The document at {} does not match query: {}",
                         request.getRequestURI(), authResult.getLuceneQuery());

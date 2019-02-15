@@ -1,7 +1,7 @@
 package com.novomatic.elasticsearch.proxy.filter;
 
 import com.netflix.zuul.context.RequestContext;
-import com.novomatic.elasticsearch.proxy.AuthorizationResult;
+import com.novomatic.elasticsearch.proxy.PreAuthorizationResult;
 import com.novomatic.elasticsearch.proxy.ElasticsearchQuery;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class MultiSearchFilter extends ElasticsearchApiFilter {
     public Object run() {
         RequestContext currentContext = RequestContext.getCurrentContext();
         HttpServletRequest request = currentContext.getRequest();
-        AuthorizationResult authResult = getPreAuthorizationResult();
+        PreAuthorizationResult authResult = getPreAuthorizationResult();
         try {
             Optional<String> requestBody = readRequestBody(currentContext);
             if (!requestBody.isPresent()) {

@@ -1,12 +1,10 @@
 package com.novomatic.elasticsearch.proxy.filter;
 
-import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
-import com.novomatic.elasticsearch.proxy.AuthorizationResult;
+import com.novomatic.elasticsearch.proxy.PreAuthorizationResult;
 import com.novomatic.elasticsearch.proxy.ElasticsearchQuery;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
-import com.novomatic.elasticsearch.proxy.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.ReflectionUtils;
@@ -54,11 +52,11 @@ public class QuerySubstitutionFilter extends ElasticsearchApiFilter {
     }
 
     private ElasticsearchQuery getAuthorizationQuery(ElasticsearchQuery incomingQuery) {
-        AuthorizationResult authorizationResult = getPreAuthorizationResult();
+        PreAuthorizationResult preAuthorizationResult = getPreAuthorizationResult();
         if (incomingQuery.isIndexAggregation()) {
-            return ElasticsearchQuery.allowedIndices(authorizationResult.getAllowedIndices());
+            return ElasticsearchQuery.allowedIndices(preAuthorizationResult.getAllowedIndices());
         }
-        return authorizationResult.getQuery();
+        return preAuthorizationResult.getQuery();
     }
 
     protected ElasticsearchQuery extractElasticsearchQuery() {

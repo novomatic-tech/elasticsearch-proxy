@@ -1,5 +1,5 @@
 server:
-  port: 8181
+  port: 19200
 zuul:
   host:
     connect-timeout-millis: 2000
@@ -19,36 +19,59 @@ elasticsearch:
   proxy:
     # This section defines authorization rules
     security:
+      admin:
+        roles: kibana.manage-kibana
+
       allow:
-      # Allow all authenticated users
-      # to read documents
-      # from '.kibana' index with property 'type' set to one of (index-pattern, config)
+      # Allow anyone to read Kibana index patterns, config, visualization and searches.
       - actions: read
         resources:
           indices: .kibana
-          query: "type:index-pattern OR type:config"
+          query: "type:index-pattern OR type:config OR type:visualization OR type:search"
 
-      # Allow users with 'view-dashboards' client role for the 'kibana' client
-      # to read documents
-      # from '.kibana' index with property 'type' set to 'dashboard'
+      # Allow only users with view-dashboards role to read Kibana dashboards.
       - principal:
           roles: kibana.view-dashboards
         actions: read
         resources:
           indices: .kibana
-          query: "type:dashboard"
+          queryScript: >
+            def userId = principal.token.getSubject();
+            "type:dashboard AND (" +
+                "acl.owner:\"${userId}\" OR " +
+                "acl.permissions.view:\"${userId}\" OR " +
+                "acl.permissions.manage:\"${userId}\" OR " +
+                "acl.permissions.view:\"all\" OR " +
+                "acl.permissions.manage:\"all\"" +
+            ")";
 
-      # Allow users with 'manage-dashboards' client role for the 'elasticsearch' client
-      # to create, update and delete documents
-      # from '.kibana' index with property 'type' set to 'dashboard'
+      # Allow only users with manage-dashboards role to write Kibana dashboards.
       - principal:
           roles: kibana.manage-dashboards
         actions: write
         resources:
           indices: .kibana
-          query: "type:dashboard"
+          queryScript: >
+            def userId = principal.token.getSubject();
+            "type:dashboard AND (" +
+                "acl.owner:\"${userId}\" OR " +
+                "acl.permissions.manage:\"${userId}\" OR " +
+                "acl.permissions.manage:\"all\"" +
+            ")";
+
+      # Allow only users with manage-visualizations role to write Kibana visualizations.
+      - principal:
+          roles: kibana.manage-visualizations
+        actions: write
+        resources:
+          indices: .kibana
+          query: "type:visualization"
+
+      # When a user has 'country' property assigned - give read access only to
+      # documents which have 'OriginCountry' field set to user's 'country' value.
       - actions: read
         resources:
-          indices: logstash-*
+          indices: kibana_sample_data_flights
           queryScript: >
-            [ createdBy: principal.token.preferredUsername ]
+            def country = principal.token.getOtherClaims().get("country");
+            country ? [ OriginCountry: country ] : null;

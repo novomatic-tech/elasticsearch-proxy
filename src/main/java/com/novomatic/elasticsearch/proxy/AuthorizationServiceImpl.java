@@ -24,7 +24,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     private List<AuthorizationRule> getMatchingAuthorizationRules(Principal principal, Set<String> indices, ResourceAction action) {
         return authorizationProperties.getAllow().stream()
-                .filter(principal::fulfills)
+                .filter(rule -> principal.fulfills(rule.getPrincipal()))
                 .filter(rule -> rule.getActions().contains(action))
                 .filter(rule -> rule.isApplicableForIndices(indices))
                 .collect(Collectors.toList());
@@ -49,7 +49,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public AuthorizationResult authorize(ElasticsearchRequest request) {
+    public PreAuthorizationResult authorize(ElasticsearchRequest request) {
         ResourceAction action = request.deduceResourceAction();
         Set<String> indices = request.getIndices();
         Principal principal = request.getPrincipal();
@@ -57,11 +57,11 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         log.debug("Processing authorization for a {} action on {} indices", action, indices);
         List<AuthorizationRule> authorizationRules = getMatchingAuthorizationRules(principal, indices, action);
         if (authorizationRules.isEmpty()) {
-            return AuthorizationResult.unauthorized();
+            return PreAuthorizationResult.unauthorized();
         }
 
         AuthorizationRuleParameters parameters = new AuthorizationRuleParameters(request, principal, authorizationRules);
         List<AuthorizationRuleOutcome> authorizationRuleOutcomes = processAuthorizationRules(parameters);
-        return AuthorizationResult.authorized(authorizationRuleOutcomes);
+        return PreAuthorizationResult.authorized(authorizationRuleOutcomes);
     }
 }

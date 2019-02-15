@@ -3,7 +3,7 @@ package com.novomatic.elasticsearch.proxy.filter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.zuul.context.RequestContext;
-import com.novomatic.elasticsearch.proxy.AuthorizationResult;
+import com.novomatic.elasticsearch.proxy.PreAuthorizationResult;
 import com.novomatic.elasticsearch.proxy.DocumentEvaluator;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
 import com.novomatic.elasticsearch.proxy.UnauthorizedException;
@@ -60,7 +60,7 @@ public class WriteDocumentFilter extends ElasticsearchApiFilter {
                 return null;
             }
             JsonNode document = objectMapper.readTree(requestBody.get());
-            AuthorizationResult authResult = getPreAuthorizationResult();
+            PreAuthorizationResult authResult = getPreAuthorizationResult();
             String luceneQuery = authResult.getLuceneQuery();
             if (!documentEvaluator.matches(document, luceneQuery)) {
                 log.info("Authorization failed. The request body does not match query: {}", luceneQuery);

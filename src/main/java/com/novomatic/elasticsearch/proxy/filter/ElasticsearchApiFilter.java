@@ -2,7 +2,7 @@ package com.novomatic.elasticsearch.proxy.filter;
 
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
-import com.novomatic.elasticsearch.proxy.AuthorizationResult;
+import com.novomatic.elasticsearch.proxy.PreAuthorizationResult;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
 import org.springframework.http.HttpStatus;
 
@@ -37,11 +37,11 @@ abstract class ElasticsearchApiFilter extends ZuulFilter {
         RequestContext.getCurrentContext().set(Constants.PASS_THROUGH, passThrough);
     }
 
-    protected AuthorizationResult getPreAuthorizationResult() {
-        return (AuthorizationResult)RequestContext.getCurrentContext().get(Constants.AUTHORIZATION);
+    protected PreAuthorizationResult getPreAuthorizationResult() {
+        return (PreAuthorizationResult)RequestContext.getCurrentContext().get(Constants.AUTHORIZATION);
     }
 
-    protected void setPreAuthorizationResult(AuthorizationResult result) {
+    protected void setPreAuthorizationResult(PreAuthorizationResult result) {
         RequestContext.getCurrentContext().set(Constants.AUTHORIZATION, result);
     }
 

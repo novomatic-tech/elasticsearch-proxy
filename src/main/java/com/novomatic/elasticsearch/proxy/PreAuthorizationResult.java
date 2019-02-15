@@ -8,33 +8,33 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class AuthorizationResult {
+public class PreAuthorizationResult {
 
-    private static AuthorizationResult UNAUTHORIZED = new AuthorizationResult();
+    private static PreAuthorizationResult UNAUTHORIZED = new PreAuthorizationResult();
 
     @Getter
     private final boolean authorized;
     private final List<AuthorizationRuleOutcome> matchedRules;
 
-    private AuthorizationResult() {
+    private PreAuthorizationResult() {
         authorized = false;
         matchedRules = Collections.emptyList();
     }
 
-    private AuthorizationResult(List<AuthorizationRuleOutcome> matchedRules) {
+    private PreAuthorizationResult(List<AuthorizationRuleOutcome> matchedRules) {
         this.authorized = true;
         this.matchedRules = matchedRules;
     }
 
-    public static AuthorizationResult unauthorized() {
+    public static PreAuthorizationResult unauthorized() {
         return UNAUTHORIZED;
     }
 
-    public static AuthorizationResult authorized(List<AuthorizationRuleOutcome> matchedRules) {
+    public static PreAuthorizationResult authorized(List<AuthorizationRuleOutcome> matchedRules) {
         if (matchedRules.isEmpty()) {
             throw new IllegalArgumentException("A collection of matched rules must have at least one item.");
         }
-        return new AuthorizationResult(matchedRules);
+        return new PreAuthorizationResult(matchedRules);
     }
 
     public Set<String> getAllowedIndices() {

@@ -3,14 +3,13 @@ package com.novomatic.elasticsearch.proxy.filter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.zuul.context.RequestContext;
-import com.novomatic.elasticsearch.proxy.AuthorizationResult;
+import com.novomatic.elasticsearch.proxy.PreAuthorizationResult;
 import com.novomatic.elasticsearch.proxy.DocumentEvaluator;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
 import com.novomatic.elasticsearch.proxy.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.IOException;
@@ -18,7 +17,6 @@ import java.io.IOException;
 import static com.novomatic.elasticsearch.proxy.DocumentEvaluatorImpl.SOURCE_FIELD;
 import static com.novomatic.elasticsearch.proxy.filter.Constants.RESPONSE_PROCESSING_FILTER;
 import static com.novomatic.elasticsearch.proxy.filter.RequestContextExtensions.readResponseBody;
-import static com.novomatic.elasticsearch.proxy.filter.RequestContextExtensions.respondWith;
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.ROUTE_TYPE;
 
 @Slf4j
@@ -61,7 +59,7 @@ public class GetDocumentFilter extends ElasticsearchApiFilter {
         try {
             String responseBody = readResponseBody(currentContext);
             JsonNode jsonNode = objectMapper.readTree(responseBody);
-            AuthorizationResult authResult = getPreAuthorizationResult();
+            PreAuthorizationResult authResult = getPreAuthorizationResult();
             JsonNode sourceNode = jsonNode.path(SOURCE_FIELD);
             if (sourceNode.isMissingNode()) {
                 // TODO: decide what to do when document does not exist.
