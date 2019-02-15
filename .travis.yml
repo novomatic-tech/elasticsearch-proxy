@@ -12,8 +12,9 @@ script:
 
 deploy:
   provider: script
-  script: |
-    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin \
+  skip_cleanup: true
+  script: >
+    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     && mvn git-commit-id:revision groovy:execute@docker-tags docker:push
   on:
     branch: master
