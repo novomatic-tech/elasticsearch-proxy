@@ -9,6 +9,8 @@ stages:
   - name: after_success
     if: branch = master
 
+install: true
+
 script:
   - mvn install
 
