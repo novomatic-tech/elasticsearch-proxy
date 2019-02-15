@@ -36,7 +36,7 @@ elasticsearch:
         resources:
           indices: .kibana
           queryScript: >
-            def userId = principal.token.getSubject();
+            def userId = principal.token.getPreferredUsername();
             "type:dashboard AND (" +
                 "acl.permissions.view:\"${userId}\" OR " +
                 "acl.permissions.manage:\"${userId}\" OR " +
@@ -51,7 +51,7 @@ elasticsearch:
         resources:
           indices: .kibana
           queryScript: >
-            def userId = principal.token.getSubject();
+            def userId = principal.token.getPreferredUsername();
             "type:dashboard AND (" +
                 "acl.permissions.manage:\"${userId}\" OR " +
                 "acl.permissions.manage:\"all\"" +
@@ -64,6 +64,14 @@ elasticsearch:
         resources:
           indices: .kibana
           query: "type:visualization"
+
+      # Allow only users with manage-searches role to write Kibana searches.
+      - principal:
+          roles: kibana.manage-searches
+        actions: write
+        resources:
+          indices: .kibana
+          query: "type:search"
 
       # When a user has 'country' property assigned - give read access only to
       # documents which have 'OriginCountry' field set to user's 'country' value.
