@@ -5,15 +5,16 @@ jdk:
 services:
   - docker
 
-stages:
-  - name: after_success
-    if: branch = master
-
 install: true
 
 script:
   - mvn install
 
-after_success:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - mvn git-commit-id:revision groovy:execute@docker-tags docker:push
+deploy:
+  provider: script
+  script: |
+    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin \
+    && mvn git-commit-id:revision groovy:execute@docker-tags docker:push
+  on:
+    branch: master
+    tags: true
