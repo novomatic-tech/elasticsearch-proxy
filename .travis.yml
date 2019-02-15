@@ -1,0 +1,17 @@
+language: java
+jdk:
+  - openjdk8
+
+services:
+  - docker
+
+stages:
+  - name: after_success
+    if: branch = master
+
+install:
+  - mvn install
+
+after_success:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - mvn git-commit-id:revision groovy:execute@docker-tags docker:push
