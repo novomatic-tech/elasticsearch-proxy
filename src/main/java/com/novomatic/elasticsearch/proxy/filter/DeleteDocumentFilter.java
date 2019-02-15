@@ -15,8 +15,10 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,9 +55,9 @@ public class DeleteDocumentFilter extends ElasticsearchApiFilter {
         RequestContext currentContext = RequestContext.getCurrentContext();
         HttpServletRequest request = getElasticsearchRequest();
         JsonNode document;
+        String requestUrl = getTargetRequestUrl(currentContext);
         try {
-            URL requestUrl = getTargetRequestUrl(currentContext);
-            document = restTemplate.getForObject(requestUrl.toString(), JsonNode.class);
+            document = restTemplate.getForObject(requestUrl, JsonNode.class);
             JsonNode sourceNode = document.path(SOURCE_FIELD);
             PreAuthorizationResult authResult = getPreAuthorizationResult();
             if (!documentEvaluator.matches(sourceNode, authResult.getLuceneQuery())) {
@@ -73,7 +75,8 @@ public class DeleteDocumentFilter extends ElasticsearchApiFilter {
                 currentContext.setRequestQueryParams(map);
             }
         } catch (HttpStatusCodeException ex) {
-            log.debug("The GET {} request returned the {} status code.", request.getRequestURI(), ex.getStatusCode());
+            String message = String.format("The GET %s request returned the %s status code.", requestUrl, ex.getStatusCode());
+            log.warn(message, ex);
             currentContext.setSendZuulResponse(false);
             if (ex.getResponseHeaders() != null) {
                 ex.getResponseHeaders().forEach((key, value) -> {
@@ -89,17 +92,13 @@ public class DeleteDocumentFilter extends ElasticsearchApiFilter {
         return null;
     }
 
-    private URL getTargetRequestUrl(RequestContext currentContext) {
+    private String getTargetRequestUrl(RequestContext currentContext) {
         URL routeHost = currentContext.getRouteHost();
         HttpServletRequest request = currentContext.getRequest();
-        String uriWithQuery = request.getRequestURI();
-        String queryString = request.getQueryString();
-        if (queryString != null) {
-            uriWithQuery += "?" + queryString;
-        }
         try {
-            return new URL(routeHost, uriWithQuery);
-        } catch (MalformedURLException e) {
+            String requestUri = java.net.URLDecoder.decode(request.getRequestURI(), StandardCharsets.UTF_8.name());
+            return new URL(routeHost, requestUri).toString();
+        } catch (UnsupportedEncodingException | MalformedURLException e) {
             ReflectionUtils.rethrowRuntimeException(e);
             return null;
         }

@@ -38,7 +38,6 @@ elasticsearch:
           queryScript: >
             def userId = principal.token.getSubject();
             "type:dashboard AND (" +
-                "acl.owner:\"${userId}\" OR " +
                 "acl.permissions.view:\"${userId}\" OR " +
                 "acl.permissions.manage:\"${userId}\" OR " +
                 "acl.permissions.view:\"all\" OR " +
@@ -54,7 +53,6 @@ elasticsearch:
           queryScript: >
             def userId = principal.token.getSubject();
             "type:dashboard AND (" +
-                "acl.owner:\"${userId}\" OR " +
                 "acl.permissions.manage:\"${userId}\" OR " +
                 "acl.permissions.manage:\"all\"" +
             ")";

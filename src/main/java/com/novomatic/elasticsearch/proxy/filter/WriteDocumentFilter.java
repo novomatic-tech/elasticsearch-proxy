@@ -45,6 +45,8 @@ public class WriteDocumentFilter extends ElasticsearchApiFilter {
         if (isPartialUpdate) {
             log.warn("Requested partial document update ({}) is not supported and hence the user is unauthorized to perform this action.",
                     request.getRequestURI());
+
+            // TODO: handle partial updates!
         }
         return answer && !isPartialUpdate;
     }
