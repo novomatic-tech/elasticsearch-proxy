@@ -1,5 +1,9 @@
 # Elasticsearch Proxy
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=novomatic-tech_elasticsearch-proxy&metric=alert_status)](https://sonarcloud.io/dashboard?id=novomatic-tech_elasticsearch-proxy)
+[![Build Status](https://travis-ci.org/novomatic-tech/elasticsearch-proxy.svg?branch=master)](https://travis-ci.org/novomatic-tech/elasticsearch-proxy)
+[![Docker Pulls](https://img.shields.io/docker/pulls/novomatic/elasticsearch-proxy.svg)](https://hub.docker.com/r/novomatic/elasticsearch-proxy)
+
 **NOTE: THIS IS A WORK IN PROGRESS**
 
 A proxy providing authentication and document level security for Elasticsearch.
