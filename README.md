@@ -118,3 +118,34 @@ Document-level security works for both read and write operations.
    GET http://localhost:8181/.kibana/_search
    Authorization: Bearer [copy value from received 'accessToken' property here]
    ```
+
+## Versioning
+
+This project is in line with the best practices from Semantic Versioning. An unstable version is considered when it ends with the `-SNAPSHOT` fragment. Otherwise the version is considered as stable.
+
+### Docker tags
+
+A stable versions eg. `1.2.3` will create the following tags for docker image: `stable`, `latest`, `1.2.3`, `1.2`, `1`.
+
+An unstable versions eg. `1.2.3-SNAPSHOT` will create the following tags for docker image: `unstable`, `1.2.3-SNAPSHOT`, `1.2.3-g0a51d42`, where `0a51d42` is a short commit hash.
+
+## Building
+
+To build a jar file:
+
+```bash
+mvn clean package
+```
+
+To build a docker image:
+
+```bash
+mvn clean install
+```
+
+To publish a docker image to the registry:
+
+```bash
+docker login
+mvn git-commit-id:revision groovy:execute@docker-tags docker:push
+```
