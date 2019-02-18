@@ -15,6 +15,12 @@ zuul:
   set-content-length: true
   ignored-headers:
 
+keycloak:
+  realm: example
+  auth-server-url: http://localhost:8080/auth
+  bearer-only: true
+  resource: kibana
+
 elasticsearch:
   proxy:
     # This section defines authorization rules
