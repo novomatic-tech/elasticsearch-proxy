@@ -14,7 +14,7 @@ addons:
 install: true
 
 script:
-  - mvn install sonar:sonar
+  - mvn install sonar:sonar -Dsonar.projectKey=novomatic-tech_elasticsearch-proxy
 
 deploy:
   provider: script
