@@ -5,10 +5,16 @@ jdk:
 services:
   - docker
 
+addons:
+  sonarcloud:
+    organization: "novomatic-tech"
+    token:
+      secure: $SONAR_TOKEN
+
 install: true
 
 script:
-  - mvn install
+  - mvn install sonar:sonar
 
 deploy:
   provider: script
