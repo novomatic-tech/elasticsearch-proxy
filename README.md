@@ -35,6 +35,12 @@ elasticsearch:
   proxy:
      # This section defines authorization rules
      security:
+     
+       # Allow any operation on Elastic cluster for users with 'manage-kibana' client role for the 'kibana' client  
+       # Users matching this rule effectively use the upstream Elasticsearch as it was unprotected. 
+       admin:
+         roles: kibana.manage-kibana
+         
        allow:
        # Allow all authenticated users
        # to read documents
