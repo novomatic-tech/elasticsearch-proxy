@@ -12,6 +12,26 @@ As of now, it is integrated with OAuth2.0-compliant [Keycloak Authorization Serv
 Before running the example make sure you have a decent understanding of 
 core [OAuth2.0 protocol concepts](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2).
 
+## Running
+
+Run using default configuration:
+
+```bash
+docker run -d -p 19200:19200 novomatic/elasticsearch-proxy
+```
+
+Run and configure by using environment variables:
+
+```bash
+docker run -d -p 19201:19201 -e server.port=19201 novomatic/elasticsearch-proxy
+```
+
+Run and configure by mounting an external file:
+
+```bash
+docker run -d -p 19200:19200 -v application.yaml:/opt/elasticsearch-proxy/application.yaml novomatic/elasticsearch-proxy
+```
+
 ## Configuration
 
 The application is configured by two configuration files:
@@ -93,7 +113,7 @@ Document-level security is achieved by either setting the:
 When neither `query` nor `queryScript` is set, the request will be processed for all documents from `resources.indices`.
 Document-level security works for both read and write operations.
 
-## Running
+## Running from sources
 
 1. Run required components:
 
