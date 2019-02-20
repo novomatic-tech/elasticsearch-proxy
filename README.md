@@ -20,12 +20,6 @@ Run using default configuration:
 docker run -d -p 19200:19200 novomatic/elasticsearch-proxy
 ```
 
-Run and configure by using environment variables:
-
-```bash
-docker run -d -p 19201:19201 -e server.port=19201 novomatic/elasticsearch-proxy
-```
-
 Run and configure by mounting an external file:
 
 ```bash
