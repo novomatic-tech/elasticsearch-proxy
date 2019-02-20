@@ -28,12 +28,14 @@ docker run -d -p 19200:19200 -v application.yaml:/opt/elasticsearch-proxy/applic
 
 ## Configuration
 
-The application is configured by two configuration files:
-- `keycloak.json` - A configuration of [the Keycloak Adapter](https://www.keycloak.org/docs/latest/securing_apps/#java-adapters)
-- `application.yaml` - A configuration of the authorization rules.
+The application is configured by configuration file: `application.yaml`.
+
+The `keycloak` property in the `application.yaml` file defines configuration 
+of [the Keycloak Adapter](https://www.keycloak.org/docs/latest/securing_apps/#java-adapters).
 
 The `elasticsearch.proxy.security.allow` property in the `application.yaml`
 file defines authorization rules for documents stored in Elasticsearch.
+
 The following sample configuration briefly explains how 
 the document-level security works:
 
@@ -41,7 +43,7 @@ the document-level security works:
 server:
   # The port the Elasticsearch proxy should be run on.
   # This port should be used to connect to Elasticsearch with Document-level security.
-  port: 8181
+  port: 19200
   
 zuul:
   routes:
@@ -139,8 +141,9 @@ Document-level security works for both read and write operations.
    The only difference is you have to add `Authorization: Bearer ...` header:
 
    ```
-   GET http://localhost:8181/.kibana/_search
+   POST http://localhost:19200/.kibana/_search
    Authorization: Bearer [copy value from received 'accessToken' property here]
+   Content-Type: application/json
    ```
 
 ## Versioning

@@ -2,25 +2,22 @@ package com.novomatic.elasticsearch.proxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.novomatic.elasticsearch.proxy.config.AuthorizationProperties;
+import com.novomatic.elasticsearch.proxy.config.KeycloakAdapterProperties;
 import com.novomatic.elasticsearch.proxy.filter.*;
 import org.keycloak.adapters.AdapterDeploymentContext;
+import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.springsecurity.AdapterDeploymentContextFactoryBean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
 
 @EnableZuulProxy
 @Configuration
 public class ElasticsearchProxyConfig {
 
-    @Value("classpath:keycloak.json")
-    private Resource keycloakConfigFileResource;
-
     @Bean
-    public AdapterDeploymentContext adapterDeploymentContext() throws Exception {
-        AdapterDeploymentContextFactoryBean factoryBean = new AdapterDeploymentContextFactoryBean(keycloakConfigFileResource);
+    public AdapterDeploymentContext adapterDeploymentContext(KeycloakAdapterProperties keycloakAdapterProperties) throws Exception {
+        AdapterDeploymentContextFactoryBean factoryBean = new AdapterDeploymentContextFactoryBean(facade -> KeycloakDeploymentBuilder.build(keycloakAdapterProperties));
         factoryBean.afterPropertiesSet();
         return factoryBean.getObject();
     }
