@@ -1,5 +1,9 @@
 # Elasticsearch Proxy
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=novomatic-tech_elasticsearch-proxy&metric=alert_status)](https://sonarcloud.io/dashboard?id=novomatic-tech_elasticsearch-proxy)
+[![Build Status](https://travis-ci.org/novomatic-tech/elasticsearch-proxy.svg?branch=master)](https://travis-ci.org/novomatic-tech/elasticsearch-proxy)
+[![Docker Pulls](https://img.shields.io/docker/pulls/novomatic/elasticsearch-proxy.svg)](https://hub.docker.com/r/novomatic/elasticsearch-proxy)
+
 **NOTE: THIS IS A WORK IN PROGRESS**
 
 A proxy providing authentication and document level security for Elasticsearch.
@@ -7,6 +11,20 @@ As of now, it is integrated with OAuth2.0-compliant [Keycloak Authorization Serv
 
 Before running the example make sure you have a decent understanding of 
 core [OAuth2.0 protocol concepts](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2).
+
+## Running
+
+Run using default configuration:
+
+```bash
+docker run -d -p 19200:19200 novomatic/elasticsearch-proxy
+```
+
+Run and configure by mounting an external file:
+
+```bash
+docker run -d -p 19200:19200 -v application.yaml:/opt/elasticsearch-proxy/application.yaml novomatic/elasticsearch-proxy
+```
 
 ## Configuration
 
@@ -95,7 +113,7 @@ Document-level security is achieved by either setting the:
 When neither `query` nor `queryScript` is set, the request will be processed for all documents from `resources.indices`.
 Document-level security works for both read and write operations.
 
-## Running
+## Running from sources
 
 1. Run required components:
 
@@ -124,3 +142,34 @@ Document-level security works for both read and write operations.
    GET http://localhost:8181/.kibana/_search
    Authorization: Bearer [copy value from received 'accessToken' property here]
    ```
+
+## Versioning
+
+This project is in line with the best practices from Semantic Versioning. An unstable version is considered when it ends with the `-SNAPSHOT` fragment. Otherwise the version is considered as stable.
+
+### Docker tags
+
+A stable versions eg. `1.2.3` will create the following tags for docker image: `stable`, `latest`, `1.2.3`, `1.2`, `1`.
+
+An unstable versions eg. `1.2.3-SNAPSHOT` will create the following tags for docker image: `unstable`, `1.2.3-SNAPSHOT`, `1.2.3-g0a51d42`, where `0a51d42` is a short commit hash.
+
+## Building
+
+To build a jar file:
+
+```bash
+mvn clean package
+```
+
+To build a docker image:
+
+```bash
+mvn clean install
+```
+
+To publish a docker image to the registry:
+
+```bash
+docker login
+mvn git-commit-id:revision groovy:execute@docker-tags docker:push
+```
