@@ -24,4 +24,3 @@ deploy:
     && mvn git-commit-id:revision groovy:execute@docker-tags docker:push
   on:
     branch: master
-    tags: true
