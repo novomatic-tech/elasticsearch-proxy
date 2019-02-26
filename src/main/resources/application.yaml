@@ -29,56 +29,6 @@ elasticsearch:
         roles: kibana.manage-kibana
 
       allow:
-      # Allow anyone to read Kibana index patterns, config, visualization and searches.
-      - actions: read
-        resources:
-          indices: .kibana
-          query: "type:index-pattern OR type:config OR type:visualization OR type:search"
-
-      # Allow only users with view-dashboards role to read Kibana dashboards.
-      - principal:
-          roles: kibana.view-dashboards
-        actions: read
-        resources:
-          indices: .kibana
-          queryScript: >
-            def userId = principal.token.getPreferredUsername();
-            "type:dashboard AND (" +
-                "acl.permissions.view:\"${userId}\" OR " +
-                "acl.permissions.manage:\"${userId}\" OR " +
-                "acl.permissions.view:\"all\" OR " +
-                "acl.permissions.manage:\"all\"" +
-            ")";
-
-      # Allow only users with manage-dashboards role to write Kibana dashboards.
-      - principal:
-          roles: kibana.manage-dashboards
-        actions: write
-        resources:
-          indices: .kibana
-          queryScript: >
-            def userId = principal.token.getPreferredUsername();
-            "type:dashboard AND (" +
-                "acl.permissions.manage:\"${userId}\" OR " +
-                "acl.permissions.manage:\"all\"" +
-            ")";
-
-      # Allow only users with manage-visualizations role to write Kibana visualizations.
-      - principal:
-          roles: kibana.manage-visualizations
-        actions: write
-        resources:
-          indices: .kibana
-          query: "type:visualization"
-
-      # Allow only users with manage-searches role to write Kibana searches.
-      - principal:
-          roles: kibana.manage-searches
-        actions: write
-        resources:
-          indices: .kibana
-          query: "type:search"
-
       # When a user has 'country' property assigned - give read access only to
       # documents which have 'OriginCountry' field set to user's 'country' value.
       - actions: read
