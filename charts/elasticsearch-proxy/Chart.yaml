@@ -1,0 +1,13 @@
+name: elasticsearch-proxy
+description: 'Elasticsearch Proxy'
+version: 0.0.1-SNAPSHOT
+appVersion: "0.0.1-SNAPSHOT"
+home: https://github.com/novomatic-tech/elasticsearch-proxy
+icon: https://static-www.elastic.co/assets/blteb1c97719574938d/logo-elastic-elasticsearch-lt.svg
+sources:
+  - https://github.com/novomatic-tech/elasticsearch-proxy
+maintainers:
+  - name: Tomasz Nocoń
+    email: thom.nocon@gmail.com
+  - name: Marek Chmiel
+    email: marochm@gmail.com

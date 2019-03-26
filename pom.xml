@@ -157,6 +157,58 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>${groovy-maven.version}</version>
+                <executions>
+                    <execution>
+                        <id>helm-lint</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+								<![CDATA[
+                                def command = "helm lint charts/elasticsearch-proxy"
+                                log.info("Executing command: ${command}")
+                                command.execute()
+                                ]]>
+							</source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>${groovy-maven.version}</version>
+                <executions>
+                    <execution>
+                        <id>helm-package</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+								<![CDATA[
+                                new File('target/chart').mkdirs()
+                                def chartVersion = project.version
+                                if (project.version.endsWith('-SNAPSHOT')) {
+                                    def gitHash = project.properties['git.commit.id.describe-short']
+                                    chartVersion = project.version.replace('SNAPSHOT', 'g' + gitHash)
+                                }
+                                def command = "helm package --destination target/chart --app-version ${chartVersion} --version ${chartVersion} charts/elasticsearch-proxy"
+                                log.info("Executing command: ${command}")
+                                command.execute()
+                                ]]>
+							</source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker-maven.version}</version>

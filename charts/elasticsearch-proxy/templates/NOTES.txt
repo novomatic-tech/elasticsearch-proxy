@@ -1,0 +1,23 @@
+To verify that {{ template "elasticsearch-proxy.fullname" . }} has started, run:
+
+  kubectl --namespace={{ .Release.Namespace }} get pods -l "app={{ template "elasticsearch-proxy.name" . }}"
+
+Elasticsearch Proxy can be accessed:
+
+  * From outside the cluster, run these commands in the same shell:
+
+  Service port forwarding:
+    kubectl port-forward --namespace {{ .Release.Namespace }} service/{{ template "elasticsearch-proxy.fullname" . }} {{ .Values.configuration.server.port }}:{{ .Values.configuration.server.port }}
+    echo "Visit http://127.0.0.1:{{ .Values.configuration.server.port }} to use Elasticsearch Proxy"
+
+  Pod port forwarding:
+    export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ template "elasticsearch-proxy.name" . }},release={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+    kubectl port-forward --namespace {{ .Release.Namespace }} $POD_NAME {{ .Values.configuration.server.port }}:{{ .Values.configuration.server.port }}
+    echo "Visit http://127.0.0.1:{{ .Values.configuration.server.port }} to use Elasticsearch Proxy"
+
+    {{- if contains "NodePort" .Values.service.type }}
+  Node port:
+    export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ template "elasticsearch-proxy.fullname" . }})
+    export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+    echo http://$NODE_IP:$NODE_PORT
+    {{- end }}

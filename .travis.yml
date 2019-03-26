@@ -5,22 +5,40 @@ jdk:
 services:
   - docker
 
+env:
+  global:
+    - HELM_URL=https://storage.googleapis.com/kubernetes-helm
+    - HELM_TGZ=helm-v2.13.1-linux-amd64.tar.gz
+
 addons:
   sonarcloud:
     organization: "novomatic-tech"
     token:
       secure: $SONAR_TOKEN
 
-install: true
+install:
+  # Installing Helm
+  - wget ${HELM_URL}/${HELM_TGZ} -O /tmp/helm.tar.gz
+  - sudo tar xzf /tmp/helm.tar.gz -C /usr/bin/ --strip-components=1
+  - sudo chmod +x /usr/bin/helm
+  - helm init --client-only
 
 script:
   - mvn install sonar:sonar -Dsonar.projectKey=novomatic-tech_elasticsearch-proxy
 
 deploy:
-  provider: script
-  skip_cleanup: true
-  script:
-    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    && mvn git-commit-id:revision groovy:execute@docker-tags docker:push
-  on:
-    branch: master
+  - provider: script
+    skip_cleanup: true
+    script:
+      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      && mvn git-commit-id:revision groovy:execute@docker-tags docker:push
+    on:
+      branch: master
+  - provider: pages
+    local_dir: target/chart
+    repo: novomatic-tech/helm-charts-repo
+    github_token: $GITHUB_TOKEN
+    target_branch: master
+    skip_cleanup: true
+    on:
+      branch: master

@@ -4,6 +4,8 @@ zuul:
   host:
     connect-timeout-millis: 2000
     socket-timeout-millis: 4000
+  ignoredPatterns:
+    - /actuator/**
   routes:
     es:
       path: /**
@@ -19,21 +21,4 @@ keycloak:
   realm: example
   auth-server-url: http://localhost:8080/auth
   bearer-only: true
-  resource: kibana
-
-elasticsearch:
-  proxy:
-    # This section defines authorization rules
-    security:
-      admin:
-        roles: kibana.manage-kibana
-
-      allow:
-      # When a user has 'country' property assigned - give read access only to
-      # documents which have 'OriginCountry' field set to user's 'country' value.
-      - actions: read
-        resources:
-          indices: kibana_sample_data_flights
-          queryScript: >
-            def country = principal.token.getOtherClaims().get("country");
-            country ? [ OriginCountry: country ] : null;
+  resource: elasticsearch
