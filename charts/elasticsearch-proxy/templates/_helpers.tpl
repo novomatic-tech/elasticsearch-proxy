@@ -23,10 +23,3 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 {{- end -}}
 {{- end -}}
-
-{{/*
-Create the content of the dockerconfigjson file useful in image pull secrets
-*/}}
-{{- define "dockerconfigjson" }}
-{{- printf "{\"auths\":{\"%s\": {\"auth\": \"%s\"}}}" .Values.imageCredentials.registry (printf "%s:%s" .Values.imageCredentials.username .Values.imageCredentials.password | b64enc) | b64enc }}
-{{- end }}

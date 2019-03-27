@@ -29,17 +29,11 @@ script:
 deploy:
   - provider: script
     skip_cleanup: true
-    script:
-      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      && mvn git-commit-id:revision groovy:execute@docker-tags docker:push
+    script: .travis/docker-publish.sh
     on:
-      branch: master
-  - provider: pages
-    local_dir: target/chart
-    repo: novomatic-tech/helm-charts-repo
-    github_token: $GITHUB_TOKEN
-    keep_history: true
-    target_branch: master
+      branch: test
+  - provider: script
     skip_cleanup: true
+    script: .travis/helm-publish.sh
     on:
-      branch: master
+      branch: test
