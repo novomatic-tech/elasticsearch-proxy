@@ -38,6 +38,7 @@ deploy:
     local_dir: target/chart
     repo: novomatic-tech/helm-charts-repo
     github_token: $GITHUB_TOKEN
+    keep_history: true
     target_branch: master
     skip_cleanup: true
     on:
