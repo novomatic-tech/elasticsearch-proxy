@@ -7,7 +7,7 @@ PUBLICATION_REPO=novomatic-tech/helm-charts-repo
 PUBLICATION_DIR=$PWD/target/chart
 
 git clone --branch=$PUBLICATION_BRANCH https://${GITHUB_TOKEN}@github.com/$PUBLICATION_REPO publish 2>&1 > /dev/null
-cd publish
+cd publish/charts
 cp -r $PUBLICATION_DIR/* .
 git add .
 git config user.name  "Travis"
