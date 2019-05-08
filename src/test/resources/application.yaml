@@ -1,0 +1,39 @@
+server:
+  port: 19200
+zuul:
+  host:
+    connect-timeout-millis: 2000
+    socket-timeout-millis: 4000
+  ignoredPatterns:
+    - /actuator/**
+  routes:
+    es:
+      path: /**
+      # The base url of the upstream (unprotected) Elasticsearch.
+      url: http://localhost:9200/
+  ignore-security-headers: false
+  sensitive-headers: Cookie, Set-Cookie
+  ignore-local-service: false
+  set-content-length: true
+  ignored-headers:
+
+elasticsearch:
+  proxy:
+    security:
+      admin:
+        roles: kibana.manage-kibana
+
+      allow:
+        # Allow all authenticated users
+        # to read documents
+        # from '.kibana' index with property 'type' set to one of (index-pattern, config)
+        - actions: read
+          resources:
+            indices: .kibana
+            query: "type:index-pattern OR type:config" # This is a lucene query
+
+keycloak:
+  realm: example
+  auth-server-url: http://localhost:8080/auth
+  bearer-only: true
+  resource: elasticsearch
