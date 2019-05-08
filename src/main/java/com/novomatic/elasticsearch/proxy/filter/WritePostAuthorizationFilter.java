@@ -15,8 +15,9 @@ public class WritePostAuthorizationFilter extends ElasticsearchApiFilter {
     @Override
     public boolean shouldFilter() {
         return !isPassThrough() &&
-               !isAuthorizationRan() &&
-               getElasticsearchRequest().deduceResourceAction().equals(ResourceAction.WRITE);
+                isElasticsearchRequest() &&
+                !isAuthorizationRan() &&
+                getElasticsearchRequest().deduceResourceAction().equals(ResourceAction.WRITE);
     }
 
     @Override

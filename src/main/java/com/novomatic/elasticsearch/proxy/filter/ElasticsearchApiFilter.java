@@ -29,6 +29,10 @@ abstract class ElasticsearchApiFilter extends ZuulFilter {
         return (ElasticsearchRequest) RequestContext.getCurrentContext().getRequest();
     }
 
+    protected boolean isElasticsearchRequest() {
+        return RequestContext.getCurrentContext().getRequest() instanceof ElasticsearchRequest;
+    }
+
     protected boolean isPassThrough() {
         return RequestContext.getCurrentContext().getBoolean(Constants.PASS_THROUGH);
     }

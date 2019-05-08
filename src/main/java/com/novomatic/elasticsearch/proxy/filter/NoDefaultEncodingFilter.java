@@ -23,7 +23,7 @@ public class NoDefaultEncodingFilter extends ZuulFilter {
 
     @Override
     public boolean shouldFilter() {
-        return true;
+        return hasRequest();
     }
 
     @Override
@@ -35,5 +35,9 @@ public class NoDefaultEncodingFilter extends ZuulFilter {
             context.addZuulRequestHeader(HttpHeaders.ACCEPT_ENCODING, "identity");
         }
         return null;
+    }
+
+    private boolean hasRequest(){
+        return RequestContext.getCurrentContext().getRequest() != null;
     }
 }

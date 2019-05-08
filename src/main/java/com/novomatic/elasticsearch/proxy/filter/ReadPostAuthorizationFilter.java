@@ -21,7 +21,8 @@ public class ReadPostAuthorizationFilter extends ElasticsearchApiFilter {
     @Override
     public boolean shouldFilter() {
         return !isPassThrough() &&
-               !isAuthorizationRan() &&
+                isElasticsearchRequest() &&
+                !isAuthorizationRan() &&
                 getElasticsearchRequest().deduceResourceAction().equals(ResourceAction.READ);
     }
 
