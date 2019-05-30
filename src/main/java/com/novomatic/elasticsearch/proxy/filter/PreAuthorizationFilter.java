@@ -24,7 +24,7 @@ public class PreAuthorizationFilter extends ElasticsearchApiFilter {
 
     @Override
     public boolean shouldFilter() {
-        return isPassThrough() && isElasticsearchRequest();
+        return !isPassThrough() && isElasticsearchRequest();
     }
 
     @Override
