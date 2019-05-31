@@ -51,6 +51,11 @@ public class AccessToken implements Token {
             return this;
         }
 
+        public Builder claim(String key, Object value){
+            claims.put(key, value);
+            return this;
+        }
+
         public AccessToken build() {
             return new AccessToken(claims);
         }
