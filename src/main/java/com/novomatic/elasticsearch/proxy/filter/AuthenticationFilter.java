@@ -119,21 +119,7 @@ public class AuthenticationFilter extends ElasticsearchApiFilter {
             sb.append("\n");
         }
         sb.append("\n");
-        try {
-            sb.append(readRequestBody(context));
-        } catch (IOException e) {
-            ReflectionUtils.rethrowRuntimeException(e);
-        }
+        sb.append(RequestContextExtensions.readRequestBody(context).orElse(""));
         return sb.toString();
-    }
-
-    private String readRequestBody(RequestContext context) throws IOException {
-        InputStream in = (InputStream) context.get(REQUEST_ENTITY_KEY);
-        if (in == null) {
-            in = context.getRequest().getInputStream();
-        }
-        String body = StreamUtils.copyToString(in, Charset.forName("UTF-8"));
-        context.set(REQUEST_ENTITY_KEY, new ByteArrayInputStream(body.getBytes("UTF-8")));
-        return body;
     }
 }

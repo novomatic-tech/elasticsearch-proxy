@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -23,7 +24,7 @@ public class GroovyQueryScriptEvaluator implements QueryScriptEvaluator {
         try {
             Object answer = shell.evaluate(queryScript);
             String luceneQuery = getLuceneQuery(answer);
-            return new QueryScriptResult(luceneQuery);
+            return new QueryScriptResult(Optional.ofNullable(luceneQuery));
         } catch (Exception ex) {
             throw new UnauthorizedException("The user is unauthorized to perform this action (query script failure).", ex);
         }

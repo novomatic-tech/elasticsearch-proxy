@@ -164,7 +164,7 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
 
     private static Set<String> parseIdentifiers(String urlPart) {
         return Stream.of(urlPart.split(","))
-                .filter(index -> !index.startsWith("_") && !isWildcardMatchingAll(index))
+                .filter(index -> !isWildcardMatchingAll(index))
                 .collect(Collectors.toSet());
     }
 

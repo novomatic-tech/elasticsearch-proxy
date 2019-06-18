@@ -5,9 +5,14 @@ import com.novomatic.elasticsearch.proxy.config.AuthorizationRule;
 import com.novomatic.elasticsearch.proxy.config.ResourceAction;
 import com.novomatic.elasticsearch.proxy.config.ResourcesConstraints;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.MatchNoDocsQuery;
+import org.apache.lucene.search.Query;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,20 +37,20 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     private List<AuthorizationRuleOutcome> processAuthorizationRules(AuthorizationRuleParameters parameters) {
         return parameters.getMatchingRules().stream()
-                .map(rule -> new AuthorizationRuleOutcome(rule, extractLuceneQuery(parameters, rule).orElse("*")))
+                .map(rule -> new AuthorizationRuleOutcome(rule, extractLuceneQuery(parameters, rule)))
                 .collect(Collectors.toList());
     }
 
-    private Optional<String> extractLuceneQuery(AuthorizationRuleParameters parameters, AuthorizationRule authorizationRule) {
+    private Query extractLuceneQuery(AuthorizationRuleParameters parameters, AuthorizationRule authorizationRule) {
         ResourcesConstraints resourcesConstraints = authorizationRule.getResources();
         if (resourcesConstraints.hasQueryScript()) {
             QueryScriptResult result = queryScriptEvaluator.evaluateQueryScript(parameters, resourcesConstraints.getQueryScript());
-            return Optional.ofNullable(result.getLuceneQuery());
+            return result.getLuceneQuery().map(this::parseQuery).orElse(new MatchNoDocsQuery());
         }
         if (resourcesConstraints.hasQuery()) {
-            return Optional.ofNullable(resourcesConstraints.getQuery());
+            return parseQuery(resourcesConstraints.getQuery());
         }
-        return Optional.empty();
+        return new MatchAllDocsQuery();
     }
 
     @Override
@@ -63,5 +68,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         AuthorizationRuleParameters parameters = new AuthorizationRuleParameters(request, principal, authorizationRules);
         List<AuthorizationRuleOutcome> authorizationRuleOutcomes = processAuthorizationRules(parameters);
         return PreAuthorizationResult.authorized(authorizationRuleOutcomes);
+    }
+
+    private Query parseQuery(String queryAsString) {
+        QueryParser queryParser = new QueryParser("text", new KeywordAnalyzer());
+        try {
+            return queryParser.parse(queryAsString);
+        } catch (ParseException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

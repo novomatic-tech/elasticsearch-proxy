@@ -1,0 +1,14 @@
+{
+  "_index" : "flights",
+  "_type" : "_doc",
+  "_id" : "ccbkaWsBuCIAHQsbxiqH",
+  "_version" : 2,
+  "result" : "updated",
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "failed" : 0
+  },
+  "_seq_no" : 13059,
+  "_primary_term" : 1
+}

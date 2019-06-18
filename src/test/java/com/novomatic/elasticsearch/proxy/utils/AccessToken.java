@@ -8,7 +8,7 @@ public class AccessToken implements Token {
     private static final String SUBJECT = "sub";
     private static final String TYP = "typ";
     private static final String RESOURCE_ACCESS = "resource_access";
-    private static final String SCOPES = "scopes";
+    private static final String PREFERRED_USERNAME = "preferred_username";
 
     private final Map<String, Object> claims;
 
@@ -46,8 +46,8 @@ public class AccessToken implements Token {
             return this;
         }
 
-        public Builder scopes(String... scopes){
-            claims.put(SCOPES, scopes);
+        public Builder preferredUsername(String username){
+            claims.put(PREFERRED_USERNAME, username);
             return this;
         }
 

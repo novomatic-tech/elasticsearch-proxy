@@ -1,0 +1,35 @@
+{
+  "FlightNum" : "9HY9SWR",
+  "DestCountry" : "AU",
+  "OriginWeather" : "Sunny",
+  "OriginCityName" : "Frankfurt am Main",
+  "AvgTicketPrice" : 841.2656419677076,
+  "DistanceMiles" : 10247.856675613455,
+  "FlightDelay" : false,
+  "DestWeather" : "Rain",
+  "Dest" : "Sydney Kingsford Smith International Airport",
+  "FlightDelayType" : "No Delay",
+  "OriginCountry" : "DE",
+  "dayOfWeek" : 0,
+  "DistanceKilometers" : 16492.32665375846,
+  "timestamp" : "2019-06-10T00:00:00",
+  "DestLocation" : {
+    "lat" : "-33.94609833",
+    "lon" : "151.177002"
+  },
+  "DestAirportID" : "SYD",
+  "Carrier" : "Kibana Airlines",
+  "Cancelled" : false,
+  "FlightTimeMin" : 1030.7704158599038,
+  "Origin" : "Frankfurt am Main Airport",
+  "OriginLocation" : {
+    "lat" : "50.033333",
+    "lon" : "8.570556"
+  },
+  "DestRegion" : "SE-BD",
+  "OriginAirportID" : "FRA",
+  "OriginRegion" : "DE-HE",
+  "DestCityName" : "Sydney",
+  "FlightTimeHour" : 17.179506930998397,
+  "FlightDelayMin" : 0
+}

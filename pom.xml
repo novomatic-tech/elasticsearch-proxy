@@ -165,13 +165,6 @@
 							</source>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.gmaven</groupId>
-                <artifactId>groovy-maven-plugin</artifactId>
-                <version>${groovy-maven.version}</version>
-                <executions>
                     <execution>
                         <id>helm-lint</id>
                         <phase>validate</phase>
@@ -188,13 +181,6 @@
 							</source>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.gmaven</groupId>
-                <artifactId>groovy-maven-plugin</artifactId>
-                <version>${groovy-maven.version}</version>
-                <executions>
                     <execution>
                         <id>helm-package</id>
                         <phase>prepare-package</phase>

@@ -60,7 +60,7 @@ public class DeleteDocumentFilter extends ElasticsearchApiFilter {
             document = restTemplate.getForObject(requestUrl, JsonNode.class);
             JsonNode sourceNode = document.path(SOURCE_FIELD);
             PreAuthorizationResult authResult = getPreAuthorizationResult();
-            if (!documentEvaluator.matches(sourceNode, authResult.getLuceneQuery())) {
+            if (!documentEvaluator.matches(sourceNode, authResult.getLuceneQuery().toString())) {
                 log.info("Authorization failed. The document at {} does not match query: {}",
                         request.getRequestURI(), authResult.getLuceneQuery());
                 throw new UnauthorizedException("The user is unauthorized to delete this document.");

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.novomatic.elasticsearch.proxy.filter.JsonNodeUtils;
+import org.apache.lucene.search.Query;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.IOException;
@@ -58,14 +59,14 @@ public final class ElasticsearchQuery {
         }
     }
 
-    public static ElasticsearchQuery fromLuceneQuery(String queryString) {
-        if (queryString == null || queryString.equals("")) {
+    public static ElasticsearchQuery fromLuceneQuery(String luceneQuery) {
+        if (luceneQuery == null) {
             return ElasticsearchQuery.empty();
         }
         ObjectNode wrapperNode = OBJECT_MAPPER.createObjectNode();
         ObjectNode rootNode = OBJECT_MAPPER.createObjectNode();
         ObjectNode query = OBJECT_MAPPER.createObjectNode();
-        query.set("query", query.textNode(queryString));
+        query.set("query", query.textNode(luceneQuery));
         rootNode.set("query_string", query);
         wrapperNode.set("query", rootNode);
         return new ElasticsearchQuery(wrapperNode);

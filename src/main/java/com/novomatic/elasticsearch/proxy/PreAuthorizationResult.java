@@ -1,10 +1,13 @@
 package com.novomatic.elasticsearch.proxy;
 
 import lombok.Getter;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,23 +47,20 @@ public class PreAuthorizationResult {
     }
 
     public ElasticsearchQuery getQuery() {
-        return ElasticsearchQuery.fromLuceneQuery(getLuceneQuery());
+        return ElasticsearchQuery.fromLuceneQuery(getLuceneQuery().toString());
     }
 
-    public String getLuceneQuery() {
-        List<String> luceneQueries = matchedRules.stream()
-                .map(AuthorizationRuleOutcome::getLuceneQuery)
-                .filter(Objects::nonNull)
-                .map(this::wrapLuceneQuery)
-                .collect(Collectors.toList());
-        if (luceneQueries.isEmpty()) {
-            return null;
+    public Query getLuceneQuery() {
+        if (matchedRules.isEmpty()) {
+            return new MatchAllDocsQuery();
         }
-        return String.join(" OR ", luceneQueries);
-    }
+        BooleanQuery.Builder luceneQueryBuilder = matchedRules.stream()
+                .map(AuthorizationRuleOutcome::getLuceneQuery)
+                .collect(BooleanQuery.Builder::new,
+                        (builder, query) -> builder.add(query, BooleanClause.Occur.SHOULD),
+                        (builder1, builder2) -> builder1.add(builder2.build(), BooleanClause.Occur.SHOULD));
 
-    private String wrapLuceneQuery(String luceneQuery) {
-        return "(" + luceneQuery + ")";
+        return luceneQueryBuilder.build();
     }
 
     public List<AuthorizationRuleOutcome> getMatchedRules() {

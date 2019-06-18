@@ -111,6 +111,7 @@ Document-level security is achieved by either setting the:
   
   - a map of terms to be matched (terms will be joined with AND logic and a corresponding lucene query will be built)
   - a lucene query string
+  - a null value indicating user does not have access to resource
 
 When neither `query` nor `queryScript` is set, the request will be processed for all documents from `resources.indices`.
 Document-level security works for both read and write operations.
