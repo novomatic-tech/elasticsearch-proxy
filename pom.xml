@@ -25,7 +25,7 @@
         <spring-cloud.version>Greenwich.SR1</spring-cloud.version>
         <lombok.version>1.18.2</lombok.version>
         <keycloak.version>4.5.0.Final</keycloak.version>
-        <lucene.version>7.5.0</lucene.version>
+        <lucene.version>8.1.1</lucene.version>
         <groovy.version>2.4.8</groovy.version>
         <docker-maven.version>0.27.2</docker-maven.version>
         <groovy-maven.version>2.1</groovy-maven.version>
