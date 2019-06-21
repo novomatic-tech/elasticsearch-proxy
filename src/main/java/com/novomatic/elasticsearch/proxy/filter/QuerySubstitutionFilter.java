@@ -18,7 +18,7 @@ public class QuerySubstitutionFilter extends ElasticsearchApiFilter {
 
     @Override
     public boolean shouldFilter() {
-        if (isPassThrough()) {
+        if (isPassThrough() || !isElasticsearchRequest()) {
             return false;
         }
         ElasticsearchRequest request = getElasticsearchRequest();

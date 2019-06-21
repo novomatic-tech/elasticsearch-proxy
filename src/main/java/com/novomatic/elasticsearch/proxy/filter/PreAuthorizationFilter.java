@@ -23,6 +23,11 @@ public class PreAuthorizationFilter extends ElasticsearchApiFilter {
     }
 
     @Override
+    public boolean shouldFilter() {
+        return !isPassThrough() && isElasticsearchRequest();
+    }
+
+    @Override
     public Object run() {
         RequestContext currentContext = RequestContext.getCurrentContext();
         HttpServletRequest request = currentContext.getRequest();
@@ -38,4 +43,6 @@ public class PreAuthorizationFilter extends ElasticsearchApiFilter {
         }
         return null;
     }
+
+
 }

@@ -1,0 +1,62 @@
+logging:
+  level:
+    com:
+      novomatic: TRACE
+
+zuul:
+  host:
+    connect-timeout-millis: 2000
+    socket-timeout-millis: 4000
+  ignoredPatterns:
+    - /actuator/**
+  routes:
+    es:
+      path: /**
+      # The base url of the upstream (unprotected) Elasticsearch.
+      url: http://localhost:9201/
+  ignore-security-headers: false
+  sensitive-headers: Cookie, Set-Cookie
+  ignore-local-service: false
+  set-content-length: true
+  ignored-headers:
+
+elasticsearch:
+  proxy:
+    security:
+      admin:
+        roles: kibana.manage-kibana
+      allow:
+        - actions: read
+          resources:
+            indices: .kibana
+            query: "type:index-pattern OR type:config"
+        - actions: read
+          principal:
+            roles: kibana.view-dashboards
+          resources:
+            indices: .kibana
+            query: "type:dashboard"
+        - actions: write
+          principal:
+            roles: kibana.manage-dashboards
+          resources:
+            indices: .kibana
+            queryScript: >
+              [ createdBy: principal.token.preferredUsername ]
+        - actions: read
+          resources:
+            indices: flights
+            queryScript: |-
+              def countries = principal.token.getOtherClaims().get("countries")
+              countries ? countries.collect{ "OriginCountry:${it}" }.join(" OR ") : null
+        - actions: write
+          principal:
+            roles: kibana.manage-flights
+          resources:
+            indices: flights
+
+keycloak:
+  realm: example
+  auth-server-url: http://localhost:8080/auth
+  bearer-only: true
+  resource: elasticsearch
