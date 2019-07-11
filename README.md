@@ -4,8 +4,6 @@
 [![Build Status](https://travis-ci.org/novomatic-tech/elasticsearch-proxy.svg?branch=master)](https://travis-ci.org/novomatic-tech/elasticsearch-proxy)
 [![Docker Pulls](https://img.shields.io/docker/pulls/novomatic/elasticsearch-proxy.svg)](https://hub.docker.com/r/novomatic/elasticsearch-proxy)
 
-**NOTE: THIS IS A WORK IN PROGRESS**
-
 A proxy providing authentication and document level security for Elasticsearch.
 As of now, it is integrated with OAuth2.0-compliant [Keycloak Authorization Server](https://www.keycloak.org/).
 

@@ -9,6 +9,7 @@ env:
   global:
     - HELM_URL=https://storage.googleapis.com/kubernetes-helm
     - HELM_TGZ=helm-v2.13.1-linux-amd64.tar.gz
+    - PROJECT_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
 
 addons:
   sonarcloud:
@@ -35,5 +36,10 @@ deploy:
   - provider: script
     skip_cleanup: true
     script: .travis/helm-publish.sh
+    on:
+      branch: master
+  - provider: script
+    skip_cleanup: true
+    script: .travis/webhook-publish.sh
     on:
       branch: master
