@@ -1,7 +1,6 @@
 package com.novomatic.elasticsearch.proxy.filter;
 
 import com.netflix.zuul.context.RequestContext;
-import com.novomatic.elasticsearch.proxy.AuthorizationService;
 import com.novomatic.elasticsearch.proxy.PreAuthorizationResult;
 import com.novomatic.elasticsearch.proxy.ElasticsearchQuery;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
@@ -18,12 +17,6 @@ import static com.novomatic.elasticsearch.proxy.filter.RequestContextExtensions.
 
 @Slf4j
 public class MultiSearchFilter extends ElasticsearchApiFilter {
-
-    private final AuthorizationService authorizationService;
-
-    public MultiSearchFilter(AuthorizationService authorizationService) {
-        this.authorizationService = authorizationService;
-    }
 
     @Override
     public boolean shouldFilter() {

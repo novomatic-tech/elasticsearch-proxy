@@ -63,8 +63,8 @@ public class ElasticsearchProxyConfig {
     }
 
     @Bean
-    public MultiSearchFilter multiSearchFilter(AuthorizationService authorizationService) {
-        return new MultiSearchFilter(authorizationService);
+    public MultiSearchFilter multiSearchFilter() {
+        return new MultiSearchFilter();
     }
 
     @Bean
