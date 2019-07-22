@@ -1,7 +1,7 @@
 version: '2.1'
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.0.1
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.2.0
     container_name: elasticsearch
     ports:
       - 9200:9200
@@ -10,7 +10,7 @@ services:
       ES_JAVA_OPTS: -Xms1g -Xmx1g
       discovery.type: single-node
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:7.0.1
+    image: docker.elastic.co/kibana/kibana-oss:7.2.0
     container_name: kibana
     ports:
       - 5601:5601

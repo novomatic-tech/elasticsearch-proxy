@@ -12,7 +12,7 @@ public class AuthorizationRuleTest {
     public void shouldMatchSubsetIndex() {
         // given
         AuthorizationRule rule = new AuthorizationRule();
-        rule.getResources().setIndices(Collections.singletonList("logstash-*"));
+        rule.getResources().setIndices(Collections.singleton("logstash-*"));
 
         // when
         boolean applicableForIndices = rule.isApplicableForIndices(Collections.singletonList("logstash-2012*"));
@@ -25,7 +25,7 @@ public class AuthorizationRuleTest {
     public void shouldMatchSupersetIndex() {
         // given
         AuthorizationRule rule = new AuthorizationRule();
-        rule.getResources().setIndices(Collections.singletonList("logstash-*"));
+        rule.getResources().setIndices(Collections.singleton("logstash-*"));
 
         // when
         boolean applicableForIndices = rule.isApplicableForIndices(Collections.singletonList("logsta*"));
@@ -38,7 +38,7 @@ public class AuthorizationRuleTest {
     public void shouldNotMatchWildcardedIndex() {
         // given
         AuthorizationRule rule = new AuthorizationRule();
-        rule.getResources().setIndices(Collections.singletonList("logstash-*"));
+        rule.getResources().setIndices(Collections.singleton("logstash-*"));
 
         // when
         boolean applicableForIndices = rule.isApplicableForIndices(Collections.singletonList("logsta-*"));
@@ -51,7 +51,7 @@ public class AuthorizationRuleTest {
     public void shouldNotMatchExactIndex() {
         // given
         AuthorizationRule rule = new AuthorizationRule();
-        rule.getResources().setIndices(Collections.singletonList("logstash"));
+        rule.getResources().setIndices(Collections.singleton("logstash"));
 
         // when
         boolean applicableForIndices = rule.isApplicableForIndices(Collections.singletonList("logstash1*"));
@@ -64,7 +64,7 @@ public class AuthorizationRuleTest {
     public void shouldAlwaysMatchEmptyIndices() {
         // given
         AuthorizationRule rule = new AuthorizationRule();
-        rule.getResources().setIndices(Collections.singletonList("logstash-*"));
+        rule.getResources().setIndices(Collections.singleton("logstash-*"));
 
         // when
         boolean applicableForIndices = rule.isApplicableForIndices(Collections.emptySet());

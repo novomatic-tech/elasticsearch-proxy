@@ -5,11 +5,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
 public class ResourcesConstraints {
-    private List<String> indices = Collections.emptyList();
+    private Set<String> indices = Collections.emptySet();
     private String query;
     private String queryScript;
     public boolean hasQueryScript() {

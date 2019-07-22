@@ -1,6 +1,7 @@
 package com.novomatic.elasticsearch.proxy.filter;
 
 import com.netflix.zuul.context.RequestContext;
+import com.novomatic.elasticsearch.proxy.AuthorizationService;
 import com.novomatic.elasticsearch.proxy.PreAuthorizationResult;
 import com.novomatic.elasticsearch.proxy.ElasticsearchQuery;
 import com.novomatic.elasticsearch.proxy.ElasticsearchRequest;
@@ -8,14 +9,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.ReflectionUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.novomatic.elasticsearch.proxy.filter.RequestContextExtensions.readRequestBody;
 
 @Slf4j
 public class MultiSearchFilter extends ElasticsearchApiFilter {
+
+    private final AuthorizationService authorizationService;
+
+    public MultiSearchFilter(AuthorizationService authorizationService) {
+        this.authorizationService = authorizationService;
+    }
 
     @Override
     public boolean shouldFilter() {
@@ -29,8 +37,9 @@ public class MultiSearchFilter extends ElasticsearchApiFilter {
     @Override
     public Object run() {
         RequestContext currentContext = RequestContext.getCurrentContext();
-        HttpServletRequest request = currentContext.getRequest();
+        ElasticsearchRequest request = getElasticsearchRequest();
         PreAuthorizationResult authResult = getPreAuthorizationResult();
+        Set<String> indices = request.getIndices();
         try {
             Optional<String> requestBody = readRequestBody(currentContext);
             if (!requestBody.isPresent()) {
@@ -40,9 +49,12 @@ public class MultiSearchFilter extends ElasticsearchApiFilter {
             StringBuilder modifiedBody = new StringBuilder();
             for (int i = 0; i < bodyParts.length; i++) {
                 String bodyPart = bodyParts[i];
-                if (i % 2 != 0) {
+
+                if (i % 2 == 0) {
+                    indices = ElasticsearchQuery.extractIndex(bodyPart).map(Collections::singleton).orElse(request.getIndices());
+                } else {
                     ElasticsearchQuery query = ElasticsearchQuery.fromJson(bodyPart);
-                    ElasticsearchQuery modifiedQuery = query.and(authResult.getQuery());
+                    ElasticsearchQuery modifiedQuery = query.and(authResult.getQueryFor(indices));
                     bodyPart = modifiedQuery.asOuterJson();
 
                     // TODO: authResult.getQuery() can be optimized - limit it by calling authorization service on a per-index basis.

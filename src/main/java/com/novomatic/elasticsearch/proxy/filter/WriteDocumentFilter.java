@@ -63,7 +63,7 @@ public class WriteDocumentFilter extends ElasticsearchApiFilter {
             }
             JsonNode document = objectMapper.readTree(requestBody.get());
             PreAuthorizationResult authResult = getPreAuthorizationResult();
-            String luceneQuery = authResult.getLuceneQuery().toString();
+            String luceneQuery = authResult.getLuceneQuery();
             if (!documentEvaluator.matches(document, luceneQuery)) {
                 log.info("Authorization failed. The request body does not match query: {}", luceneQuery);
                 throw new UnauthorizedException("The user is unauthorized to create or update this document.");

@@ -47,6 +47,7 @@ public class ElasticsearchProxyTest {
 
     /**
      * Admin can do anything
+     * Endpoint: POST /{index}/_search
      */
     @Test
     public void shouldProtectIndices() {
@@ -70,6 +71,7 @@ public class ElasticsearchProxyTest {
 
     /**
      * Authenticated user can read index patterns
+     * Endpoint: POST /{index}/_search
      */
     @Test
     public void shouldProtectIndexPatterns() {
@@ -89,11 +91,12 @@ public class ElasticsearchProxyTest {
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         // verify that query has been added to the request body
         verify(postRequestedFor(urlEqualTo("/.kibana/_search"))
-                .withRequestBody(matchingJsonPath("$.query.bool.filter[1].bool.should[0].query_string.query", equalTo("(type:index-pattern type:config)"))));
+                .withRequestBody(matchingJsonPath("$.query.bool.filter[1].bool.should[0].query_string.query", equalTo("(type:index-pattern OR type:config)"))));
     }
 
     /**
      * Unauthenticated user cannot do anything
+     * Endpoint: POST /{index}/_search
      */
     @Test
     public void shouldAuthenticateOperations() {
@@ -110,6 +113,7 @@ public class ElasticsearchProxyTest {
 
     /**
      * Only dashboard owner can delete dashboard
+     * Endpoint: DELETE /{index}/{type}/{id}
      */
     @Test
     public void shouldProtectDeleteOperation() {
@@ -140,6 +144,7 @@ public class ElasticsearchProxyTest {
 
     /**
      * Generate es query based on countries claim
+     * Endpoint: POST /{index}/_search
      */
     @Test
     public void shouldProtectSearchOperation() {
@@ -161,14 +166,42 @@ public class ElasticsearchProxyTest {
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         // verify that query has been added to the request body
         verify(postRequestedFor(urlEqualTo("/flights/_search"))
-                .withRequestBody(matchingJsonPath("$.query.bool.filter[1].bool.should[0].query_string.query", equalTo("(OriginCountry:PL OriginCountry:EN)"))));
+                .withRequestBody(matchingJsonPath("$.query.bool.filter[1].bool.should[0].query_string.query", equalTo("(OriginCountry:PL OR OriginCountry:EN)"))));
     }
 
     /**
-     * Generate es query based on countries claim
+     * Generate es query based on countries claim for multi search endpoint
+     * Endpoint: POST /_msearch
      */
     @Test
     public void shouldProtectMultiSearchOperation() {
+        // Arrange
+        stubFor(post("/_msearch"));
+        AccessToken accessToken = tokenBuilder()
+                .claim("countries", Arrays.asList("PL", "EN"))
+                .build();
+        String bearerToken = tokenAuthenticationService.serializeToken(accessToken);
+
+        // Act
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(bearerToken);
+        String requestBody = readResource("classpath:/multi-search-request.json");
+        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<String> response = restTemplate.exchange("/_msearch", HttpMethod.POST, entity, String.class);
+
+        // Assert
+        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+        // verify that query has been added to the request body
+        verify(postRequestedFor(urlEqualTo("/_msearch"))
+                .withRequestBody(equalTo(readResource("classpath:/multi-search-expected-request.json"))));
+    }
+
+    /**
+     * Generate es query based on countries claim for multi search endpoint when index defined
+     * Endpoint: POST /{index}/_msearch
+     */
+    @Test
+    public void shouldProtectMultiSearchOperationWhenIndexDefined() {
         // Arrange
         stubFor(post("/flights/_msearch"));
         AccessToken accessToken = tokenBuilder()
@@ -187,11 +220,12 @@ public class ElasticsearchProxyTest {
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         // verify that query has been added to the request body
         verify(postRequestedFor(urlEqualTo("/flights/_msearch"))
-                .withRequestBody(equalTo(readResource("classpath:/multi-search-expected-request.json"))));
+                .withRequestBody(equalTo(readResource("classpath:/multi-search-index-expected-request.json"))));
     }
 
     /**
      * User without countries claim cannot perform multi get
+     * Endpoint: POST /{index}/_mget
      */
     @Test
     public void shouldProtectMultiGetOperation() {
@@ -215,6 +249,7 @@ public class ElasticsearchProxyTest {
 
     /**
      * User without countries claim cannot get document
+     * Endpoint: GET /{index}/{type}/{id}
      */
     @Test
     public void shouldProtectGetOperation() {
@@ -235,7 +270,9 @@ public class ElasticsearchProxyTest {
         verify(getRequestedFor(urlEqualTo(documentPath)));
     }
 
-
+    /**
+     * Endpoint: PUT /{index}/{type}/{id}
+     */
     @Test
     public void shouldProtectWriteOperation() {
         // Arrange

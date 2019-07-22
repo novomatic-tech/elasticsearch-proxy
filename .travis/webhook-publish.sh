@@ -8,7 +8,7 @@ WEBHOOK_URL=$WEBHOOK_URL
 WEBHOOK_DATA='
 {
     "text": "A new *'$PROJECT_NAME'* version *'$PROJECT_VERSION'* has been released.
-             \nMore info about changes: https://github.com/novomatic-tech/elasticsearch-proxy/releases
+             \nMore info about changes: https://github.com/novomatic-tech/elasticsearch-proxy/blob/master/releases.md
              \nDocker image: https://hub.docker.com/r/novomatic/elasticsearch-proxy"
 }'
 

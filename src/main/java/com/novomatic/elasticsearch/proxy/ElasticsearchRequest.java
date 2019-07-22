@@ -4,7 +4,6 @@ import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.http.ServletInputStreamWrapper;
 import com.novomatic.elasticsearch.proxy.config.ResourceAction;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -54,7 +53,7 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
 
     private void parseTypes(String[] tokens) {
         if (tokens.length > 1) {
-            types = parseIdentifiers(tokens[1]);
+            types = isDocType(tokens[1]) ? Collections.singleton(tokens[1]) : parseIdentifiers(tokens[1]);
             allTypes = isWildcardMatchingAll(tokens[1]);
         }
     }
@@ -164,7 +163,7 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
 
     private static Set<String> parseIdentifiers(String urlPart) {
         return Stream.of(urlPart.split(","))
-                .filter(index -> !isWildcardMatchingAll(index))
+                .filter(index -> !index.startsWith("_") && !isWildcardMatchingAll(index))
                 .collect(Collectors.toSet());
     }
 
@@ -199,6 +198,10 @@ public class ElasticsearchRequest extends HttpServletRequestWrapper {
 
     private static boolean isWildcardMatchingAll(String urlPath) {
         return urlPath.equals("_all") || urlPath.equals("*");
+    }
+
+    private static boolean isDocType(String type) {
+        return "_doc".equals(type);
     }
 
     @Override

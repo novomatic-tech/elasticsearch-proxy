@@ -5,12 +5,8 @@ import com.novomatic.elasticsearch.proxy.config.AuthorizationRule;
 import com.novomatic.elasticsearch.proxy.config.ResourceAction;
 import com.novomatic.elasticsearch.proxy.config.ResourcesConstraints;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.MatchNoDocsQuery;
-import org.apache.lucene.search.Query;
 
 import java.util.List;
 import java.util.Set;
@@ -41,16 +37,16 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .collect(Collectors.toList());
     }
 
-    private Query extractLuceneQuery(AuthorizationRuleParameters parameters, AuthorizationRule authorizationRule) {
+    private String extractLuceneQuery(AuthorizationRuleParameters parameters, AuthorizationRule authorizationRule) {
         ResourcesConstraints resourcesConstraints = authorizationRule.getResources();
         if (resourcesConstraints.hasQueryScript()) {
             QueryScriptResult result = queryScriptEvaluator.evaluateQueryScript(parameters, resourcesConstraints.getQueryScript());
-            return result.getLuceneQuery().map(this::parseQuery).orElse(new MatchNoDocsQuery());
+            return result.getLuceneQuery().orElse(new MatchNoDocsQuery("The user has no permission to any document.").toString());
         }
         if (resourcesConstraints.hasQuery()) {
-            return parseQuery(resourcesConstraints.getQuery());
+            return resourcesConstraints.getQuery();
         }
-        return new MatchAllDocsQuery();
+        return new MatchAllDocsQuery().toString();
     }
 
     @Override
@@ -68,14 +64,5 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         AuthorizationRuleParameters parameters = new AuthorizationRuleParameters(request, principal, authorizationRules);
         List<AuthorizationRuleOutcome> authorizationRuleOutcomes = processAuthorizationRules(parameters);
         return PreAuthorizationResult.authorized(authorizationRuleOutcomes);
-    }
-
-    private Query parseQuery(String queryAsString) {
-        QueryParser queryParser = new QueryParser("text", new KeywordAnalyzer());
-        try {
-            return queryParser.parse(queryAsString);
-        } catch (ParseException ex) {
-            throw new RuntimeException(ex);
-        }
     }
 }

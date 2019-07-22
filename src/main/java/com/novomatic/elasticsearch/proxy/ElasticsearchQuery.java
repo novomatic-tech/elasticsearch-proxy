@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.novomatic.elasticsearch.proxy.filter.JsonNodeUtils;
-import org.apache.lucene.search.Query;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.IOException;
@@ -110,7 +109,7 @@ public final class ElasticsearchQuery {
             existingBoolQuery.fields().forEachRemaining(field -> {
                 if (field.getKey().equals("filter")) {
                     if (field.getValue() instanceof ArrayNode) {
-                        filters.addAll((ArrayNode)field.getValue());
+                        filters.addAll((ArrayNode) field.getValue());
                     } else {
                         filters.add(field.getValue());
                     }
@@ -151,6 +150,7 @@ public final class ElasticsearchQuery {
 
     /**
      * Finds a nested JSON node in the query JSON.
+     *
      * @param property The JSON property name (i.e. query.terms).
      */
     public JsonNode getProperty(String property) {
@@ -172,6 +172,7 @@ public final class ElasticsearchQuery {
      *   }
      * }
      * </pre>
+     *
      * @return
      */
     public boolean isIndexAggregation() {
@@ -210,5 +211,22 @@ public final class ElasticsearchQuery {
     @Override
     public String toString() {
         return asOuterJson();
+    }
+
+    public static Optional<String> extractIndex(String json) {
+        if (json == null || json.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            final String indexKey = "index";
+            ObjectNode node = OBJECT_MAPPER.readValue(json, ObjectNode.class);
+            if (node.has(indexKey)) {
+                return Optional.of(node.get(indexKey).textValue());
+            }
+            return Optional.empty();
+        } catch (IOException e) {
+            ReflectionUtils.rethrowRuntimeException(e);
+            return Optional.empty();
+        }
     }
 }

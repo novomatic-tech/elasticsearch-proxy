@@ -66,7 +66,7 @@ public class GetDocumentFilter extends ElasticsearchApiFilter {
                 setAuthorizationRan(true);
                 return null;
             }
-            String luceneQuery = authResult.getLuceneQuery().toString();
+            String luceneQuery = authResult.getLuceneQuery();
             if (!documentEvaluator.matches(sourceNode, luceneQuery)) {
                 log.info("Authorization failed. Document {} does not match query: {}", jsonNode.path("_id"), luceneQuery);
                 throw new UnauthorizedException("The user is unauthorized to access this document");

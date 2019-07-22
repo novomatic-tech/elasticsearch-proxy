@@ -62,7 +62,7 @@ public class MultiGetFilter extends ElasticsearchApiFilter {
             // TODO: authResult.getLuceneQuery() can be optimized - limit it by calling authorization service on a per-index basis.
 
             JsonNode docsNode = jsonNode.path("docs");
-            String luceneQuery = authResult.getLuceneQuery().toString();
+            String luceneQuery = authResult.getLuceneQuery();
             if (!docsNode.isMissingNode() && docsNode instanceof ArrayNode) {
                 for (JsonNode docNode : docsNode) {
                     JsonNode sourceNode = docNode.path(SOURCE_FIELD);

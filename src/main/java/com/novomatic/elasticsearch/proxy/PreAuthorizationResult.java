@@ -1,14 +1,11 @@
 package com.novomatic.elasticsearch.proxy;
 
 import lombok.Getter;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class PreAuthorizationResult {
@@ -47,20 +44,35 @@ public class PreAuthorizationResult {
     }
 
     public ElasticsearchQuery getQuery() {
-        return ElasticsearchQuery.fromLuceneQuery(getLuceneQuery().toString());
+        return ElasticsearchQuery.fromLuceneQuery(getLuceneQuery());
     }
 
-    public Query getLuceneQuery() {
-        if (matchedRules.isEmpty()) {
-            return new MatchAllDocsQuery();
-        }
-        BooleanQuery.Builder luceneQueryBuilder = matchedRules.stream()
-                .map(AuthorizationRuleOutcome::getLuceneQuery)
-                .collect(BooleanQuery.Builder::new,
-                        (builder, query) -> builder.add(query, BooleanClause.Occur.SHOULD),
-                        (builder1, builder2) -> builder1.add(builder2.build(), BooleanClause.Occur.SHOULD));
+    public ElasticsearchQuery getQueryFor(Set<String> indices) {
+        return ElasticsearchQuery.fromLuceneQuery(getLuceneQueryFor(indices));
+    }
 
-        return luceneQueryBuilder.build();
+    public String getLuceneQuery() {
+        return getLuceneQuery(rule -> true);
+    }
+
+    private String getLuceneQueryFor(Set<String> indices) {
+        return getLuceneQuery(rule -> indices.isEmpty() || rule.getRule().getResources().getIndices().equals(indices));
+    }
+
+    private String getLuceneQuery(Predicate<AuthorizationRuleOutcome> filter) {
+        List<String> luceneQueries = matchedRules.stream()
+                .filter(filter)
+                .map(AuthorizationRuleOutcome::getLuceneQuery)
+                .map(this::wrapLuceneQuery)
+                .collect(Collectors.toList());
+        if (luceneQueries.isEmpty()) {
+            return null;
+        }
+        return String.join(" OR ", luceneQueries);
+    }
+
+    private String wrapLuceneQuery(String luceneQuery) {
+        return "(" + luceneQuery + ")";
     }
 
     public List<AuthorizationRuleOutcome> getMatchedRules() {

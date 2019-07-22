@@ -1,6 +1,6 @@
 {"index" : "flights"}
 {"query":{"bool":{"filter":[{"bool":{"should":[{"query_string":{"query":"(OriginCountry:PL OR OriginCountry:EN)"}}]}}],"must":{"match_all":{}}}},"from":0,"size":1}
 
-{"query":{"bool":{"filter":[{"bool":{"should":[{"query_string":{"query":"(type:index-pattern OR type:config) OR (OriginCountry:PL OR OriginCountry:EN)"}}]}}],"must":{"match_all":{}}}},"from":1,"size":1}
+{"query":{"bool":{"filter":[{"bool":{"should":[{"query_string":{"query":"(OriginCountry:PL OR OriginCountry:EN)"}}]}}],"must":{"match_all":{}}}},"from":1,"size":1}
 {"index" : "test"}
 {"query":{"match_all":{}},"from":2,"size":1}
