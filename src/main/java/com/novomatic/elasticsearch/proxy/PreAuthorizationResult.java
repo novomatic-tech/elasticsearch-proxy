@@ -5,7 +5,6 @@ import lombok.Getter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class PreAuthorizationResult {
@@ -26,17 +25,6 @@ public class PreAuthorizationResult {
         this.matchedRules = matchedRules;
     }
 
-    public static PreAuthorizationResult unauthorized() {
-        return UNAUTHORIZED;
-    }
-
-    public static PreAuthorizationResult authorized(List<AuthorizationRuleOutcome> matchedRules) {
-        if (matchedRules.isEmpty()) {
-            throw new IllegalArgumentException("A collection of matched rules must have at least one item.");
-        }
-        return new PreAuthorizationResult(matchedRules);
-    }
-
     public Set<String> getAllowedIndices() {
         return matchedRules.stream()
                 .flatMap(outcome -> outcome.getRule().getResources().getIndices().stream())
@@ -48,22 +36,36 @@ public class PreAuthorizationResult {
     }
 
     public ElasticsearchQuery getQueryFor(Set<String> indices) {
-        return ElasticsearchQuery.fromLuceneQuery(getLuceneQueryFor(indices));
+        List<AuthorizationRuleOutcome> filteredRules = matchedRules.stream()
+                .filter(rule -> indices.isEmpty() || rule.getRule().getResources().getIndices().equals(indices))
+                .collect(Collectors.toList());
+        String luceneQuery = getLuceneQuery(filteredRules);
+        return ElasticsearchQuery.fromLuceneQuery(luceneQuery);
     }
 
     public String getLuceneQuery() {
-        return getLuceneQuery(rule -> true);
+        return getLuceneQuery(matchedRules);
     }
 
-    private String getLuceneQueryFor(Set<String> indices) {
-        return getLuceneQuery(rule -> indices.isEmpty() || rule.getRule().getResources().getIndices().equals(indices));
+    public List<AuthorizationRuleOutcome> getMatchedRules() {
+        return matchedRules;
     }
 
-    private String getLuceneQuery(Predicate<AuthorizationRuleOutcome> filter) {
+    public static PreAuthorizationResult unauthorized() {
+        return UNAUTHORIZED;
+    }
+
+    public static PreAuthorizationResult authorized(List<AuthorizationRuleOutcome> matchedRules) {
+        if (matchedRules.isEmpty()) {
+            throw new IllegalArgumentException("A collection of matched rules must have at least one item.");
+        }
+        return new PreAuthorizationResult(matchedRules);
+    }
+
+    private static String getLuceneQuery(List<AuthorizationRuleOutcome> matchedRules) {
         List<String> luceneQueries = matchedRules.stream()
-                .filter(filter)
                 .map(AuthorizationRuleOutcome::getLuceneQuery)
-                .map(this::wrapLuceneQuery)
+                .map(PreAuthorizationResult::wrapLuceneQuery)
                 .collect(Collectors.toList());
         if (luceneQueries.isEmpty()) {
             return null;
@@ -71,11 +73,7 @@ public class PreAuthorizationResult {
         return String.join(" OR ", luceneQueries);
     }
 
-    private String wrapLuceneQuery(String luceneQuery) {
+    private static String wrapLuceneQuery(String luceneQuery) {
         return "(" + luceneQuery + ")";
-    }
-
-    public List<AuthorizationRuleOutcome> getMatchedRules() {
-        return matchedRules;
     }
 }
