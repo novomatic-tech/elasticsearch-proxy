@@ -1,3 +1,9 @@
+# 0.1.0
+
+## Changelog
+
+* Updated to work with keycloak 9.0.2
+
 # 0.0.2
 
 ## Changelog

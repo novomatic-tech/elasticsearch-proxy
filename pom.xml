@@ -5,7 +5,7 @@
 
     <groupId>com.novomatic</groupId>
     <artifactId>elasticsearch-proxy</artifactId>
-    <version>0.0.2</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
 
     <name>elasticsearch-proxy</name>
@@ -24,7 +24,7 @@
         <java.version>1.8</java.version>
         <spring-cloud.version>Greenwich.SR1</spring-cloud.version>
         <lombok.version>1.18.2</lombok.version>
-        <keycloak.version>4.5.0.Final</keycloak.version>
+        <keycloak.version>9.0.2</keycloak.version>
         <lucene.version>8.1.1</lucene.version>
         <groovy.version>2.4.8</groovy.version>
         <docker-maven.version>0.27.2</docker-maven.version>
