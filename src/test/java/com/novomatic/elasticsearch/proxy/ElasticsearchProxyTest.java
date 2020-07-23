@@ -1,21 +1,21 @@
 package com.novomatic.elasticsearch.proxy;
 
-import com.novomatic.elasticsearch.proxy.utils.AccessToken;
-import com.novomatic.elasticsearch.proxy.utils.TokenAuthenticationService;
-import org.apache.commons.io.Charsets;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpEntity;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,18 +23,35 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import org.apache.commons.io.Charsets;
+import org.junit.Assert;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
+
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.novomatic.elasticsearch.proxy.utils.AccessToken;
+import com.novomatic.elasticsearch.proxy.utils.TokenAuthenticationService;
 
 /**
  * Integration tests based on the application.yaml configuration file placed in test resources.
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(classes = {SecurityConfiguration.class})
+@ContextConfiguration(classes = { SecurityConfiguration.class })
 @AutoConfigureWireMock(port = 9201)
 public class ElasticsearchProxyTest {
 
-    private static final String KEYCLOAK_ISSUER = "http://localhost:8080/auth/realms/example";
+    private static final String KEYCLOAK_ISSUER = "http://localhost:9201/auth/realms/example";
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -44,6 +61,38 @@ public class ElasticsearchProxyTest {
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    @BeforeEach
+    public void setUp() {
+        String openidConfig = ""
+                + "{\"issuer\":\"http://localhost:9201/auth/realms/example\",\"authorization_endpoint\":\"http://localhost:9201/auth/realms/example/protocol/openid-connect/auth\","
+                + "\"token_endpoint\":\"http://localhost:9201/auth/realms/example/protocol/openid-connect/token\","
+                + "\"token_introspection_endpoint\":\"http://localhost:9201/auth/realms/example/protocol/openid-connect/token/introspect\","
+                + "\"userinfo_endpoint\":\"http://localhost:9201/auth/realms/example/protocol/openid-connect/userinfo\","
+                + "\"end_session_endpoint\":\"http://localhost:9201/auth/realms/example/protocol/openid-connect/logout\","
+                + "\"jwks_uri\":\"http://localhost:9201/auth/realms/example/protocol/openid-connect/certs\","
+                + "\"check_session_iframe\":\"http://localhost:9201/auth/realms/example/protocol/openid-connect/login-status-iframe.html\",\"grant_types_supported\":[\"authorization_code\","
+                + "\"implicit\",\"refresh_token\",\"password\",\"client_credentials\"],\"response_types_supported\":[\"code\",\"none\",\"id_token\",\"token\",\"id_token token\",\"code "
+                + "id_token\",\"code token\",\"code id_token token\"],\"subject_types_supported\":[\"public\",\"pairwise\"],\"id_token_signing_alg_values_supported\":[\"PS384\",\"ES384\","
+                + "\"RS384\",\"HS256\",\"HS512\",\"ES256\",\"RS256\",\"HS384\",\"ES512\",\"PS256\",\"PS512\",\"RS512\"],\"id_token_encryption_alg_values_supported\":[\"RSA-OAEP\",\"RSA1_5\"],"
+                + "\"id_token_encryption_enc_values_supported\":[\"A128GCM\",\"A128CBC-HS256\"],\"userinfo_signing_alg_values_supported\":[\"PS384\",\"ES384\",\"RS384\",\"HS256\",\"HS512\","
+                + "\"ES256\",\"RS256\",\"HS384\",\"ES512\",\"PS256\",\"PS512\",\"RS512\",\"none\"],\"request_object_signing_alg_values_supported\":[\"PS384\",\"ES384\",\"RS384\",\"HS256\","
+                + "\"HS512\",\"ES256\",\"RS256\",\"HS384\",\"ES512\",\"PS256\",\"PS512\",\"RS512\",\"none\"],\"response_modes_supported\":[\"query\",\"fragment\",\"form_post\"],"
+                + "\"registration_endpoint\":\"http://localhost:9201/auth/realms/example/clients-registrations/openid-connect\",\"token_endpoint_auth_methods_supported\":[\"private_key_jwt\","
+                + "\"client_secret_basic\",\"client_secret_post\",\"tls_client_auth\",\"client_secret_jwt\"],\"token_endpoint_auth_signing_alg_values_supported\":[\"PS384\",\"ES384\",\"RS384\","
+                + "\"HS256\",\"HS512\",\"ES256\",\"RS256\",\"HS384\",\"ES512\",\"PS256\",\"PS512\",\"RS512\"],\"claims_supported\":[\"aud\",\"sub\",\"iss\",\"auth_time\",\"name\","
+                + "\"given_name\",\"family_name\",\"preferred_username\",\"email\",\"acr\"],\"claim_types_supported\":[\"normal\"],\"claims_parameter_supported\":false,"
+                + "\"scopes_supported\":[\"openid\",\"address\",\"email\",\"microprofile-jwt\",\"offline_access\",\"phone\",\"profile\",\"roles\",\"web-origins\"],"
+                + "\"request_parameter_supported\":true,\"request_uri_parameter_supported\":true,\"code_challenge_methods_supported\":[\"plain\",\"S256\"],"
+                + "\"tls_client_certificate_bound_access_tokens\":true,\"introspection_endpoint\":\"http://localhost:9201/auth/realms/example/protocol/openid-connect/token/introspect\"}";
+
+        stubFor(WireMock.get("/auth/realms/example/.well-known/openid-configuration")
+                        .willReturn(aResponse()
+                                            .withHeader("Content-Type", "application/json")
+                                            .withBody(openidConfig)
+                        )
+        );
+    }
 
     /**
      * Admin can do anything
@@ -91,7 +140,7 @@ public class ElasticsearchProxyTest {
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         // verify that query has been added to the request body
         verify(postRequestedFor(urlEqualTo("/.kibana/_search"))
-                .withRequestBody(matchingJsonPath("$.query.bool.filter[1].bool.should[0].query_string.query", equalTo("(type:index-pattern OR type:config)"))));
+                       .withRequestBody(matchingJsonPath("$.query.bool.filter[1].bool.should[0].query_string.query", equalTo("(type:index-pattern OR type:config)"))));
     }
 
     /**
@@ -166,7 +215,7 @@ public class ElasticsearchProxyTest {
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         // verify that query has been added to the request body
         verify(postRequestedFor(urlEqualTo("/flights/_search"))
-                .withRequestBody(matchingJsonPath("$.query.bool.filter[1].bool.should[0].query_string.query", equalTo("(OriginCountry:PL OR OriginCountry:EN)"))));
+                       .withRequestBody(matchingJsonPath("$.query.bool.filter[1].bool.should[0].query_string.query", equalTo("(OriginCountry:PL OR OriginCountry:EN)"))));
     }
 
     /**
@@ -193,7 +242,7 @@ public class ElasticsearchProxyTest {
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         // verify that query has been added to the request body
         verify(postRequestedFor(urlEqualTo("/_msearch"))
-                .withRequestBody(equalTo(readResource("classpath:/multi-search-expected-request.json"))));
+                       .withRequestBody(equalTo(readResource("classpath:/multi-search-expected-request.json"))));
     }
 
     /**
@@ -220,7 +269,7 @@ public class ElasticsearchProxyTest {
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         // verify that query has been added to the request body
         verify(postRequestedFor(urlEqualTo("/flights/_msearch"))
-                .withRequestBody(equalTo(readResource("classpath:/multi-search-index-expected-request.json"))));
+                       .withRequestBody(equalTo(readResource("classpath:/multi-search-index-expected-request.json"))));
     }
 
     /**
@@ -294,7 +343,6 @@ public class ElasticsearchProxyTest {
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(putRequestedFor(urlEqualTo(documentPath)));
     }
-
 
     private AccessToken.Builder tokenBuilder() {
         return new AccessToken.Builder()
