@@ -57,6 +57,6 @@ elasticsearch:
 
 keycloak:
   realm: example
-  auth-server-url: http://localhost:8080/auth
+  auth-server-url: http://localhost:9201/auth
   bearer-only: true
   resource: elasticsearch

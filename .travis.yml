@@ -14,8 +14,7 @@ env:
 addons:
   sonarcloud:
     organization: "novomatic-tech"
-    token:
-      secure: $SONAR_TOKEN
+    token: $SONAR_TOKEN
 
 install:
   # Installing Helm
