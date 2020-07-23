@@ -27,7 +27,7 @@
         <keycloak.version>9.0.2</keycloak.version>
         <lucene.version>8.1.1</lucene.version>
         <groovy.version>2.4.8</groovy.version>
-        <docker-maven.version>0.27.2</docker-maven.version>
+        <docker-maven.version>0.30.0</docker-maven.version>
         <groovy-maven.version>2.1</groovy-maven.version>
         <git-commit-id.version>2.2.6</git-commit-id.version>
         <docker.image.repository>novomatic/elasticsearch-proxy</docker.image.repository>
