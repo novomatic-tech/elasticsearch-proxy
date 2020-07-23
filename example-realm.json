@@ -113,7 +113,8 @@
       "defaultClientScopes": [
         "role_list",
         "profile",
-        "email"
+        "email",
+        "roles"
       ],
       "optionalClientScopes": [
         "address",
@@ -125,7 +126,8 @@
   "defaultDefaultClientScopes": [
     "role_list",
     "profile",
-    "email"
+    "email",
+    "roles"
   ],
   "defaultOptionalClientScopes": [
     "offline_access",
